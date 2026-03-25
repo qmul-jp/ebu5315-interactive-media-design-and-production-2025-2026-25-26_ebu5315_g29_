@@ -6,6 +6,6 @@ Ying Huo 2024213603 241118142 haomingzik558@qq.com
 
 **Task Allocation**
 
-
+Game: Ying Huo
 
 **Assigned TA:Wenjing Yv**
