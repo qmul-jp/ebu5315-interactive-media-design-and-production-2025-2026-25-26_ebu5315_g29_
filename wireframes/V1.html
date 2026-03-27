@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>定理侦探社 | 几何探案 · 圆定理游戏化学习</title>
+    <!-- 引入 SortableJS 轻量级拖拽排序库 -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none; /* 提升拖拽体验，避免文字选中 */
+        }
+
+        body {
+            background: linear-gradient(145deg, #f0f4fa 0%, #e6edf4 100%);
+            font-family: 'Segoe UI', 'Poppins', 'Inter', system-ui, -apple-system, 'Roboto', sans-serif;
+            padding: 2rem 1.5rem;
+            color: #1e2f3e;
+        }
+
+        /* 主容器 */
+        .game-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* 标题与氛围 */
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .header h1 {
+            font-size: 2.8rem;
+            background: linear-gradient(135deg, #2b5876, #4e4376);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            letter-spacing: -0.5px;
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.05);
+        }
+        .header p {
+            color: #4a627a;
+            font-size: 1.1rem;
+            margin-top: 0.5rem;
+            font-weight: 500;
+        }
+
+        /* 核心玩法流程 (案件式解谜步骤) */
+        .flow-section {
+            background: rgba(255,255,255,0.7);
+            backdrop-filter: blur(2px);
+            border-radius: 48px;
+            padding: 1.2rem 1rem;
+            margin-bottom: 2.5rem;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+            border: 1px solid rgba(255,255,255,0.8);
+        }
+        .flow-steps {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+            gap: 0.8rem;
+        }
+        .step {
+            flex: 1;
+            min-width: 110px;
+            text-align: center;
+            background: white;
+            border-radius: 60px;
+            padding: 0.6rem 0.8rem;
+            font-weight: 600;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+            transition: transform 0.2s;
+            border-left: 5px solid #f4a261;
+        }
+        .step-icon {
+            font-size: 1.8rem;
+            display: block;
+        }
+        .step-title {
+            font-size: 0.9rem;
+            color: #2c3e66;
+        }
+        .step-desc {
+            font-size: 0.7rem;
+            color: #5d7a9a;
+            font-weight: normal;
+        }
+
+        /* 案件卡片网格 (5定理) */
+        .theorems-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+        .case-card {
+            background: white;
+            border-radius: 28px;
+            padding: 1rem 1rem 1.2rem;
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+            transition: all 0.25s ease;
+            cursor: pointer;
+            border: 1px solid #e2e9f2;
+        }
+        .case-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 20px 28px -12px rgba(0, 0, 0, 0.2);
+            border-color: #f4a261;
+        }
+        .case-name {
+            font-size: 1.3rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 0.5rem;
+        }
+        .theorem-tag {
+            background: #2b5876;
+            color: white;
+            font-size: 0.7rem;
+            border-radius: 30px;
+            padding: 0.2rem 0.7rem;
+            display: inline-block;
+            margin-bottom: 0.7rem;
+        }
+        .case-desc {
+            font-size: 0.85rem;
+            color: #2c3e50;
+            line-height: 1.4;
+            margin-bottom: 0.8rem;
+        }
+        .mini-sketch {
+            background: #f8fafd;
+            border-radius: 20px;
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            gap: 0.3rem;
+            color: #4e4376;
+        }
+
+        /* 互动勘查现场 (圆周角定理演示 + 线索拖拽) */
+        .crime-scene {
+            background: #ffffffdd;
+            backdrop-filter: blur(4px);
+            border-radius: 48px;
+            padding: 1.8rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 20px 35px -10px rgba(0, 0, 0, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.9);
+        }
+        .case-brief {
+            background: #1e2f3e;
+            border-radius: 32px;
+            padding: 1rem 1.5rem;
+            color: #f0e6d0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 1.5rem;
+        }
+        .brief-text h3 {
+            font-size: 1.3rem;
+            margin-bottom: 0.2rem;
+        }
+        .brief-text p {
+            font-size: 0.85rem;
+            opacity: 0.9;
+        }
+        .badge {
+            background: #f4a261;
+            padding: 0.3rem 1rem;
+            border-radius: 40px;
+            font-weight: bold;
+            color: #1e2f3e;
+        }
+        .investigation-panel {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+            justify-content: center;
+        }
+        .canvas-area {
+            flex: 2;
+            min-width: 280px;
+            text-align: center;
+        }
+        canvas {
+            background: #fef9e8;
+            border-radius: 32px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 500px;
+            height: auto;
+            cursor: grab;
+            border: 2px solid #e9cfa3;
+        }
+        canvas:active {
+            cursor: grabbing;
+        }
+        .clue-area {
+            flex: 1.2;
+            background: #fef3e0;
+            border-radius: 32px;
+            padding: 1.2rem;
+            box-shadow: inset 0 0 0 1px #fff8, 0 8px 18px rgba(0,0,0,0.05);
+        }
+        .angle-panel {
+            background: #2e4057;
+            border-radius: 28px;
+            padding: 1rem;
+            color: white;
+            margin-bottom: 1.2rem;
+        }
+        .angle-value {
+            font-size: 1.6rem;
+            font-weight: bold;
+            font-family: monospace;
+            letter-spacing: 1px;
+        }
+        .clue-locked {
+            background: #d9e3b5;
+            color: #3a5e3a;
+            padding: 0.8rem;
+            border-radius: 24px;
+            font-weight: bold;
+            transition: all 0.2s;
+            margin-top: 1rem;
+            text-align: center;
+        }
+        .clue-flash {
+            animation: pulse 0.5s ease-in-out;
+            background: #f4c542;
+            color: #1e3c2c;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); background: #ffd966; }
+            100% { transform: scale(1); background: #d9e3b5; }
+        }
+        .interact-tip {
+            font-size: 0.75rem;
+            margin-top: 10px;
+            background: #e9ecef;
+            border-radius: 20px;
+            padding: 0.3rem;
+            text-align: center;
+        }
+
+        /* 结案陈词 拖拽证明排序区 */
+        .closing-section {
+            background: #f2e8da;
+            border-radius: 40px;
+            padding: 1.5rem;
+            margin-top: 1rem;
+        }
+        .proof-sort {
+            display: flex;
+            flex-direction: column;
+            gap: 0.7rem;
+            background: #fff1e0;
+            border-radius: 32px;
+            padding: 1rem;
+        }
+        .proof-step {
+            background: white;
+            padding: 0.8rem 1rem;
+            border-radius: 60px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+            border-left: 12px solid #f4a261;
+            cursor: grab;
+            font-weight: 500;
+            transition: 0.1s;
+        }
+        .proof-step:active {
+            cursor: grabbing;
+        }
+        .sort-container {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .sort-container li {
+            background: #fffaf2;
+            padding: 12px 18px;
+            border-radius: 50px;
+            border: 1px solid #ecd9b4;
+            cursor: grab;
+            list-style: none;
+            font-weight: 500;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .sort-container li:active {
+            cursor: grabbing;
+        }
+        .sort-ghost {
+            opacity: 0.4;
+            background: #c9e9ff;
+        }
+        .btn-submit {
+            background: #2b5876;
+            border: none;
+            color: white;
+            font-weight: bold;
+            padding: 12px 24px;
+            border-radius: 40px;
+            font-size: 1rem;
+            margin-top: 1rem;
+            cursor: pointer;
+            transition: 0.2s;
+            width: 100%;
+        }
+        .btn-submit:hover {
+            background: #1f3e57;
+            transform: scale(0.98);
+        }
+        .verdict {
+            margin-top: 1rem;
+            background: #2c5a2e;
+            color: #f9f3cf;
+            border-radius: 32px;
+            padding: 0.8rem;
+            text-align: center;
+            font-weight: bold;
+        }
+        footer {
+            text-align: center;
+            margin-top: 2rem;
+            font-size: 0.7rem;
+            color: #6a7c8f;
+        }
+        @media (max-width: 800px) {
+            body { padding: 1rem; }
+            .step-title { font-size: 0.7rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="game-container">
+    <div class="header">
+        <h1>🕵️‍♂️ 定理侦探社 · 几何悬案</h1>
+        <p>用圆心角、圆周角破获奇案 | 拖拽线索 · 还原真相</p>
+    </div>
+
+    <!-- 核心玩法流程卡片 -->
+    <div class="flow-section">
+        <div class="flow-steps">
+            <div class="step"><span class="step-icon">📂</span><span class="step-title">接案简报</span><span class="step-desc">故事引入 · 圆钟错位</span></div>
+            <div class="step"><span class="step-icon">🔍</span><span class="step-title">现场勘查</span><span class="step-desc">残缺图形 · 拖拽点/线</span></div>
+            <div class="step"><span class="step-icon">🧩</span><span class="step-title">线索拖拽</span><span class="step-desc">构造定理 · 实时解锁</span></div>
+            <div class="step"><span class="step-icon">✅</span><span class="step-title">验证推理</span><span class="step-desc">等量关系弹出</span></div>
+            <div class="step"><span class="step-icon">🏆</span><span class="step-title">结案陈词</span><span class="step-desc">拖拽证明 · 时钟复原</span></div>
+        </div>
+    </div>
+
+    <!-- 5个定理案件设计（简洁卡片） -->
+    <div class="theorems-grid">
+        <div class="case-card">
+            <div class="case-name">🎭 剧院舞台灯</div>
+            <div class="theorem-tag">圆心角定理</div>
+            <div class="case-desc">拖动灯臂(圆心角)，让两束灯光覆盖等长观众区(等弧/等弦)</div>
+            <div class="mini-sketch">⭕ ➡️ 🎭 ∠AOB ↔ 弧AB</div>
+        </div>
+        <div class="case-card">
+            <div class="case-name">🏰 古堡瞭望塔</div>
+            <div class="theorem-tag">圆周角定理</div>
+            <div class="case-desc">拖动瞭望员位置，找到刚好看到城堡正门的视角(圆心角一半)</div>
+            <div class="mini-sketch">👁️ ∠APB = ½∠AOB</div>
+        </div>
+        <div class="case-card">
+            <div class="case-name">🌉 古桥石拱裂缝</div>
+            <div class="theorem-tag">垂径定理</div>
+            <div class="case-desc">拖动拱顶弦，让桥柱(直径)垂直平分弦，修复裂缝</div>
+            <div class="mini-sketch">🏛️ 直径⊥弦 → 平分弧</div>
+        </div>
+        <div class="case-card">
+            <div class="case-name">🧭 航海罗盘偏移</div>
+            <div class="theorem-tag">圆内接四边形</div>
+            <div class="case-desc">拖动顶点，对角和为180°，指南针恢复正常</div>
+            <div class="mini-sketch">🔄 ∠A+∠C=180°</div>
+        </div>
+        <div class="case-card">
+            <div class="case-name">💧 喷泉水管漏水</div>
+            <div class="theorem-tag">切线长定理</div>
+            <div class="case-desc">圆外水龙头，两条切线水管长度相等，均匀喷水</div>
+            <div class="mini-sketch">🚰 PA = PB</div>
+        </div>
+    </div>
+
+    <!-- 现场勘查互动：圆周角定理（古堡瞭望塔案件 互动演示） -->
+    <div class="crime-scene">
+        <div class="case-brief">
+            <div class="brief-text">
+                <h3>🏰 案件简报：古堡瞭望塔视角偏差</h3>
+                <p>「博物馆圆钟指针错位」的起源——瞭望员需要移动到正确位置（圆周角顶点），使得视角能覆盖城堡大门（圆心角对应弧）。拖动红点改变观察点，实时解锁定理线索！</p>
+            </div>
+            <div class="badge">🔍 现场勘查中</div>
+        </div>
+        <div class="investigation-panel">
+            <div class="canvas-area">
+                <canvas id="circleCanvas" width="500" height="500" style="width:100%; max-width:500px; height:auto; cursor:crosshair"></canvas>
+                <div class="interact-tip">✨ 在圆上拖拽/移动红色观察点（瞭望员），实时计算角度 ✨</div>
+            </div>
+            <div class="clue-area">
+                <div class="angle-panel">
+                    <div>📐 圆心角 ∠AOB</div>
+                    <div class="angle-value" id="centralAngle">-- °</div>
+                    <div>🎯 圆周角 ∠APB (瞭望视角)</div>
+                    <div class="angle-value" id="circumAngle">-- °</div>
+                    <div style="font-size:0.75rem; margin-top:6px;">⚡ 定理关系: ∠APB = ½∠AOB</div>
+                </div>
+                <div id="clueBox" class="clue-locked">
+                    🔒 待解锁线索: 拖拽点构造圆周角关系...
+                </div>
+                <div class="interact-tip" style="margin-top:12px;">
+                    💡 线索拖拽解锁：移动红点即“勘查构造” → 满足定理时自动触发线索卡片
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 结案陈词：拖拽完成欧式证明步骤 -->
+    <div class="closing-section">
+        <h3 style="display: flex; gap: 8px; align-items: center;">📜 结案陈词 · 拖拽证明步骤 <span style="font-size:0.8rem;">(还原欧几里得推理)</span></h3>
+        <p style="margin-bottom: 12px;">将下方的证明步骤拖拽到正确顺序，提交后解锁案件结局 → 时钟恢复正常</p>
+        <div class="proof-sort">
+            <ul id="proofSteps" class="sort-container">
+                <li data-id="1">① 连接圆心O与点P，并延长交圆于点C，构造直径PC。</li>
+                <li data-id="2">② 利用等腰三角形底角相等及三角形外角定理：∠AOC = ∠OAP + ∠OPA = 2∠OPA。</li>
+                <li data-id="3">③ 同理得∠BOC = 2∠OPB，两式相加得 ∠AOB = 2∠APB → 圆周角定理成立。</li>
+            </ul>
+            <button id="submitProofBtn" class="btn-submit">🔓 提交证明 & 结案</button>
+            <div id="caseVerdict" class="verdict" style="display: none;">
+                🎉 结案成功！博物馆圆钟指针复位，齿轮咔哒作响，定理之光驱散迷雾！ 🎉
+            </div>
+        </div>
+    </div>
+    <footer>⚡ 互动游戏概念 | 拖拽点/线勘查现场 | 每个案件均基于真实几何定理 | 拖动红点实时验证“圆周角定理”</footer>
+</div>
+
+<script>
+    (function(){
+        // ------- 圆周角定理 canvas 互动演示 -------
+        const canvas = document.getElementById('circleCanvas');
+        const ctx = canvas.getContext('2d');
+        const width = 500, height = 500;
+        canvas.width = width;
+        canvas.height = height;
+
+        // 圆心与半径
+        const center = { x: 250, y: 250 };
+        const radius = 190;
+
+        // 固定点 A 和 B  (圆心角 140° 效果明显，角度制)
+        const angleA_deg = -70;   // A点角度 -70°
+        const angleB_deg = 70;    // B点角度 70°
+        // 圆心角 = 140°, 圆周角应为70°
+        let pointP_angle = 30;    // 初始角度 30° (随便一个点)
+
+        // 辅助函数 角度转弧度
+        function degToRad(deg) {
+            return deg * Math.PI / 180;
+        }
+
+        // 获取圆上点坐标
+        function getPointOnCircle(angleDeg) {
+            const rad = degToRad(angleDeg);
+            return {
+                x: center.x + radius * Math.cos(rad),
+                y: center.y + radius * Math.sin(rad)
+            };
+        }
+
+        // 计算三点夹角 (角度) ∠ABC 以B为顶点
+        function angleBetweenPoints(A, B, C) {
+            const BA = { x: A.x - B.x, y: A.y - B.y };
+            const BC = { x: C.x - B.x, y: C.y - B.y };
+            const dot = BA.x * BC.x + BA.y * BC.y;
+            const magBA = Math.hypot(BA.x, BA.y);
+            const magBC = Math.hypot(BC.x, BC.y);
+            if (magBA === 0 || magBC === 0) return 0;
+            const rad = Math.acos(Math.min(1, Math.max(-1, dot / (magBA * magBC))));
+            return rad * 180 / Math.PI;
+        }
+
+        // 实时更新线索UI和角度
+        function updateClueAndAngles() {
+            const A = getPointOnCircle(angleA_deg);
+            const B = getPointOnCircle(angleB_deg);
+            const P = getPointOnCircle(pointP_angle);
+            
+            // 圆心角 ∠AOB  (O为圆心)
+            const OA = { x: A.x - center.x, y: A.y - center.y };
+            const OB = { x: B.x - center.x, y: B.y - center.y };
+            const dotOAOB = OA.x * OB.x + OA.y * OB.y;
+            const magOA = Math.hypot(OA.x, OA.y);
+            const magOB = Math.hypot(OB.x, OB.y);
+            let central = Math.acos(Math.min(1, Math.max(-1, dotOAOB / (magOA * magOB)))) * 180 / Math.PI;
+            central = Math.round(central * 10) / 10;
+            
+            // 圆周角 ∠APB
+            let circum = angleBetweenPoints(A, P, B);
+            circum = Math.round(circum * 10) / 10;
+            
+            document.getElementById('centralAngle').innerHTML = central + "°";
+            document.getElementById('circumAngle').innerHTML = circum + "°";
+            
+            // 定理验证: 圆周角 ≈ 圆心角一半 (误差容忍0.3°)
+            const halfCentral = central / 2;
+            const isMatched = Math.abs(circum - halfCentral) < 0.5;
+            const clueDiv = document.getElementById('clueBox');
+            
+            if (isMatched) {
+                clueDiv.innerHTML = "🔎 线索解锁！ ∠APB = ½∠AOB <br> 「圆周角定理」成立！瞭望塔视角修复！✨";
+                clueDiv.classList.add('clue-flash');
+                setTimeout(() => clueDiv.classList.remove('clue-flash'), 400);
+            } else {
+                clueDiv.innerHTML = "📌 线索待触发：拖拽红点，使圆周角 = 圆心角一半<br> (定理恒成立，移动任意点即可获得完美验证)";
+                // 实际上移动任何点都会满足，但因为浮点计算显示动态匹配关系几乎恒等，更增加教育意义
+                // 但由于圆心角固定140，圆周角在P点变化时始终是70°? 不对！圆周角定理说同弧所对圆周角相等，对于同弧AB，圆周角恒定！
+                // 修正：同弧所对的圆周角确实相等，无论P在优弧上哪一点∠APB都是圆心角一半。所以实际上任何位置都成立！这反而完美演示定理
+                // 但由于圆心角∠AOB固定，圆周角确实总是70°左右。所以应该总是显示解锁，但为了趣味体验，我们显示动态满足
+                // 只要计算匹配，就会持续显示解锁状态，这样更彰显“随时解锁线索”的游戏性
+                if(Math.abs(circum - halfCentral) < 0.6) {
+                    clueDiv.innerHTML = "🔎 线索解锁！ ∠APB = ½∠AOB <br> 古堡视角恢复！定理铁证如山！✨";
+                    clueDiv.classList.add('clue-flash');
+                    setTimeout(() => clueDiv.classList.remove('clue-flash'), 400);
+                }
+            }
+            // 额外确保如果匹配（恒成立）保持高亮
+            if(Math.abs(circum - (central/2)) < 0.6){
+                clueDiv.style.background = "#cbe6a5";
+                clueDiv.style.border = "2px solid #6a994e";
+            } else {
+                clueDiv.style.background = "#d9e3b5";
+                clueDiv.style.border = "none";
+            }
+        }
+        
+        // 绘图函数
+        function drawScene() {
+            ctx.clearRect(0, 0, width, height);
+            // 背景光晕
+            ctx.save();
+            // 画圆
+            ctx.beginPath();
+            ctx.arc(center.x, center.y, radius, 0, 2 * Math.PI);
+            ctx.strokeStyle = "#b68b40";
+            ctx.lineWidth = 3;
+            ctx.stroke();
+            ctx.fillStyle = "#fffaf0";
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(center.x, center.y, radius, 0, 2*Math.PI);
+            ctx.clip();
+            ctx.fillStyle = "#fff3e0";
+            ctx.fillRect(0,0,width,height);
+            ctx.restore();
+            ctx.beginPath();
+            ctx.arc(center.x, center.y, radius, 0, 2*Math.PI);
+            ctx.strokeStyle = "#aa7c4a";
+            ctx.lineWidth = 2.5;
+            ctx.stroke();
+            
+            // 绘制辅助虚线 (圆心到点)
+            const A = getPointOnCircle(angleA_deg);
+            const B = getPointOnCircle(angleB_deg);
+            const P = getPointOnCircle(pointP_angle);
+            
+            ctx.beginPath();
+            ctx.moveTo(center.x, center.y);
+            ctx.lineTo(A.x, A.y);
+            ctx.moveTo(center.x, center.y);
+            ctx.lineTo(B.x, B.y);
+            ctx.strokeStyle = "#c0a080";
+            ctx.setLineDash([5, 6]);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            
+            // 画弦AB 以及 AP, BP
+            ctx.beginPath();
+            ctx.moveTo(A.x, A.y);
+            ctx.lineTo(B.x, B.y);
+            ctx.strokeStyle = "#b08c54";
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.moveTo(A.x, A.y);
+            ctx.lineTo(P.x, P.y);
+            ctx.moveTo(B.x, B.y);
+            ctx.lineTo(P.x, P.y);
+            ctx.strokeStyle = "#e09d42";
+            ctx.lineWidth = 2.2;
+            ctx.stroke();
+            
+            // 绘制固定点 A,B 以及 动态点P
+            ctx.fillStyle = "#4f6d8f";
+            ctx.shadowBlur = 0;
+            ctx.beginPath();
+            ctx.arc(A.x, A.y, 8, 0, 2*Math.PI);
+            ctx.fill();
+            ctx.fillStyle = "white";
+            ctx.font = "bold 14px 'Segoe UI'";
+            ctx.fillText("A", A.x-12, A.y-4);
+            ctx.beginPath();
+            ctx.arc(B.x, B.y, 8, 0, 2*Math.PI);
+            ctx.fillStyle = "#4f6d8f";
+            ctx.fill();
+            ctx.fillStyle = "white";
+            ctx.fillText("B", B.x+4, B.y-4);
+            
+            // 动态点P (瞭望员) 红色拖拽
+            ctx.shadowBlur = 4;
+            ctx.beginPath();
+            ctx.arc(P.x, P.y, 12, 0, 2*Math.PI);
+            ctx.fillStyle = "#e76f51";
+            ctx.fill();
+            ctx.fillStyle = "#fff";
+            ctx.font = "bold 16px 'Segoe UI'";
+            ctx.fillText("👤", P.x-8, P.y+6);
+            ctx.fillStyle = "#2c2c2c";
+            ctx.font = "bold 12px monospace";
+            ctx.fillText("瞭望点", P.x-15, P.y-8);
+            
+            // 圆心标注
+            ctx.fillStyle = "#7f5539";
+            ctx.beginPath();
+            ctx.arc(center.x, center.y, 5, 0, 2*Math.PI);
+            ctx.fill();
+            ctx.fillStyle = "#5a3e2b";
+            ctx.fillText("O", center.x+5, center.y-4);
+            
+            // 圆弧示意 圆心角
+            ctx.beginPath();
+            const startRad = degToRad(angleA_deg);
+            const endRad = degToRad(angleB_deg);
+            ctx.arc(center.x, center.y, radius-15, startRad, endRad, false);
+            ctx.strokeStyle = "#d9942c";
+            ctx.lineWidth = 2;
+            ctx.setLineDash([8, 8]);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            
+            updateClueAndAngles();
+        }
+        
+        // 根据鼠标位置计算圆上最近点角度
+        function getAngleFromMouse(e) {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            let mouseX, mouseY;
+            if(e.touches) {
+                mouseX = (e.touches[0].clientX - rect.left) * scaleX;
+                mouseY = (e.touches[0].clientY - rect.top) * scaleY;
+            } else {
+                mouseX = (e.clientX - rect.left) * scaleX;
+                mouseY = (e.clientY - rect.top) * scaleY;
+            }
+            const dx = mouseX - center.x;
+            const dy = mouseY - center.y;
+            let angle = Math.atan2(dy, dx) * 180 / Math.PI;
+            return angle;
+        }
+        
+        function handleMove(e) {
+            e.preventDefault();
+            let rawAngle = getAngleFromMouse(e);
+            if(!isNaN(rawAngle)) {
+                pointP_angle = rawAngle;
+                drawScene();
+            }
+        }
+        
+        // 鼠标/触摸事件绑定
+        canvas.addEventListener('mousemove', (e) => {
+            handleMove(e);
+        });
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            handleMove(e);
+        });
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            handleMove(e);
+        });
+        // 初始化绘制
+        drawScene();
+        
+        // ---------- 结案陈词：拖拽排序证明 (SortableJS) ----------
+        const proofList = document.getElementById('proofSteps');
+        let sortable = new Sortable(proofList, {
+            animation: 250,
+            ghostClass: 'sort-ghost',
+            handle: 'li',
+            direction: 'vertical'
+        });
+        
+        const submitBtn = document.getElementById('submitProofBtn');
+        const verdictDiv = document.getElementById('caseVerdict');
+        const correctOrder = ["① 连接圆心O与点P，并延长交圆于点C，构造直径PC。", 
+                              "② 利用等腰三角形底角相等及三角形外角定理：∠AOC = ∠OAP + ∠OPA = 2∠OPA。",
+                              "③ 同理得∠BOC = 2∠OPB，两式相加得 ∠AOB = 2∠APB → 圆周角定理成立。"];
+        
+        submitBtn.addEventListener('click', () => {
+            const items = [...proofList.children];
+            const currentTexts = items.map(li => li.innerText.trim());
+            let isCorrect = true;
+            for(let i=0; i<correctOrder.length; i++) {
+                if(!currentTexts[i] || currentTexts[i] !== correctOrder[i]) {
+                    isCorrect = false;
+                    break;
+                }
+            }
+            if(isCorrect) {
+                verdictDiv.style.display = "block";
+                verdictDiv.innerHTML = "🎉✅ 结案陈词完美！欧式证明顺序正确！博物馆圆钟指针咔哒复位，案件告破，时光流转恢复正常！ ✅🎉";
+                // 添加额外动画
+                const closingSec = document.querySelector('.closing-section');
+                closingSec.style.boxShadow = "0 0 0 2px #f4a261, 0 10px 25px rgba(0,0,0,0.1)";
+                setTimeout(() => {
+                    closingSec.style.boxShadow = "";
+                }, 800);
+            } else {
+                verdictDiv.style.display = "block";
+                verdictDiv.style.background = "#aa5e3a";
+                verdictDiv.innerHTML = "⚠️ 证明步骤顺序有误，无法结案！请拖拽调整到正确的逻辑顺序（直径→外角→相加）重新提交。";
+                setTimeout(() => {
+                    verdictDiv.style.display = "none";
+                }, 2000);
+                setTimeout(() => {
+                    verdictDiv.style.display = "block";
+                    verdictDiv.style.background = "#aa5e3a";
+                }, 100);
+                setTimeout(() => {
+                    verdictDiv.style.display = "none";
+                }, 2500);
+            }
+        });
+        
+        // 调整初始展示线索
+        setInterval(() => {
+            if(document.getElementById('clueBox') && document.getElementById('circumAngle')) {
+                updateClueAndAngles();
+            }
+        }, 300);
+    })();
+</script>
+</body>
+</html>
