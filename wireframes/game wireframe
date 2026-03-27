@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>圆定理侦探社 | 像素风几何解谜 · 完整案件展示</title>
+    <title>圆定理侦探社 | 像素风几何解谜 · 浅色主题</title>
     <style>
         * {
             box-sizing: border-box;
@@ -14,7 +14,7 @@
         body {
             margin: 0;
             min-height: 100vh;
-            background: #0a0c12;
+            background: #e8eef2;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -22,8 +22,8 @@
             padding: 20px;
         }
         .detective-container {
-            background: #0b0e14;
-            box-shadow: 0 0 0 4px #3a3f4e, 0 0 0 8px #1e212a, 0 8px 24px black;
+            background: #fef9e8;
+            box-shadow: 0 0 0 4px #cbd5e0, 0 0 0 8px #e2e8f0, 0 8px 24px rgba(0,0,0,0.1);
             padding: 1.2rem;
             max-width: 1400px;
             width: 100%;
@@ -37,9 +37,9 @@
         .canvas-stage {
             flex: 3;
             min-width: 500px;
-            background: #000000;
-            border: 3px solid #5f6a7a;
-            box-shadow: inset 0 0 0 2px #2e333d, 4px 4px 0px 0px #1a1c22;
+            background: #fef7e0;
+            border: 3px solid #b9c3d0;
+            box-shadow: inset 0 0 0 2px #f5f0e0, 4px 4px 0px 0px #d0d8e4;
             padding: 0.5rem;
             position: relative;
             cursor: default;
@@ -48,76 +48,77 @@
             content: "";
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: repeating-linear-gradient(0deg, rgba(0,255,0,0.02) 0px, rgba(0,255,0,0.02) 2px, transparent 2px, transparent 4px);
+            background: repeating-linear-gradient(0deg, rgba(100,80,40,0.03) 0px, rgba(100,80,40,0.03) 2px, transparent 2px, transparent 4px);
             pointer-events: none;
         }
         canvas {
             display: block;
             width: 100%;
-            background: #101418;
+            background: #fff9ef;
             image-rendering: crisp-edges;
             image-rendering: pixelated;
             cursor: default;
             pointer-events: none;
+            box-shadow: inset 0 0 0 1px #e2dcc0;
         }
         .case-panel {
             flex: 1.2;
             min-width: 280px;
-            background: #12161f;
-            border: 3px solid #4c5568;
+            background: #fff6e8;
+            border: 3px solid #cbd5e0;
             padding: 1rem;
-            box-shadow: inset 2px 2px 0px #2a2f3c, 4px 4px 0px #080b10;
+            box-shadow: inset 2px 2px 0px #fffef8, 4px 4px 0px #d0d8e4;
             display: flex;
             flex-direction: column;
             gap: 1rem;
         }
         .brief {
-            background: #0c0f18;
-            border-left: 6px solid #7f8c8d;
+            background: #fffcf0;
+            border-left: 6px solid #e9b35f;
             padding: 0.8rem;
-            box-shadow: inset 0px 1px 0px #2a2e3a, 0 2px 0 #000;
+            box-shadow: inset 0px 1px 0px #ffffff, 0 2px 0 #e2d8c4;
         }
         .brief h2 {
             margin: 0 0 0.5rem;
             font-size: 0.85rem;
-            color: #c7e9ff;
+            color: #5c4b2c;
             font-weight: normal;
-            text-shadow: 2px 2px 0px #1a2a3a;
+            text-shadow: 1px 1px 0px #f7e9ce;
             line-height: 1.3;
         }
         .brief p {
             margin: 0;
             font-size: 0.65rem;
-            color: #9aaec9;
+            color: #7a6848;
             line-height: 1.4;
             font-family: monospace;
         }
         .status-area {
-            background: #080b10;
-            border: 2px solid #3a4050;
+            background: #fff4e4;
+            border: 2px solid #e0d5c0;
             padding: 0.6rem;
             font-size: 0.6rem;
-            color: #bbd4f0;
+            color: #6b5a3e;
             font-family: 'Press Start 2P', monospace;
             line-height: 1.3;
-            text-shadow: 1px 1px 0px #000000;
+            text-shadow: 1px 1px 0px #fff6ea;
         }
         .clue-box {
-            background: #0c0f18;
-            border: 2px dashed #5d6b83;
+            background: #fffdf5;
+            border: 2px dashed #dac29c;
             padding: 0.7rem;
             min-height: 150px;
         }
         .clue-label {
             font-weight: bold;
-            color: #e0c87c;
+            color: #b87c2e;
             font-size: 0.55rem;
             letter-spacing: 1px;
             margin-bottom: 8px;
         }
         .clue-content {
             font-size: 0.65rem;
-            color: #eef2fa;
+            color: #5a4a2e;
             font-family: 'Courier New', monospace;
             word-break: break-word;
             line-height: 1.4;
@@ -129,23 +130,23 @@
             margin-top: 0.2rem;
         }
         button {
-            background: #2a2f3e;
+            background: #f0e4d0;
             border: none;
             padding: 0.6rem 0.8rem;
             font-family: 'Press Start 2P', monospace;
             font-size: 0.55rem;
-            color: #eef2fa;
+            color: #5c4b2c;
             cursor: pointer;
-            box-shadow: 0 3px 0 #0f111a;
+            box-shadow: 0 3px 0 #cbbf9f;
             transition: 0.05s linear;
             text-transform: uppercase;
         }
         button:active {
             transform: translateY(2px);
-            box-shadow: 0 1px 0 #0f111a;
+            box-shadow: 0 1px 0 #cbbf9f;
         }
-        button.primary { background: #4e5b7c; text-shadow: 1px 1px 0 #1e293b; }
-        button.warning { background: #5c4a3a; color: #fadfaa; }
+        button.primary { background: #e5d5b8; color: #4e3b20; text-shadow: 1px 1px 0 #fff0dc; }
+        button.warning { background: #e6cfaa; color: #7a572c; }
         .badge-row {
             display: flex;
             gap: 6px;
@@ -154,30 +155,31 @@
             justify-content: center;
         }
         .medal {
-            background: #1b202b;
-            border: 1px solid #4d5a72;
+            background: #eae2d0;
+            border: 1px solid #ccbc9c;
             padding: 4px 6px;
             font-size: 0.5rem;
             font-weight: bold;
-            color: #8e9eb5;
+            color: #7e6a48;
             font-family: monospace;
             text-align: center;
         }
-        .medal.active { background: #5f7343; color: #f9f2cf; border-color: #e6cd7c; }
-        hr { border-top: 2px solid #2e3545; margin: 4px 0; }
-        @keyframes pixelBlink { 0% { filter: drop-shadow(0 0 0px #ffffaa);} 50% { filter: drop-shadow(0 0 4px #ffcc77);} 100% { filter: drop-shadow(0 0 0px);} }
+        .medal.active { background: #e9cf9b; color: #4a371a; border-color: #dba643; box-shadow: inset 0 0 0 1px #ffe3aa; }
+        hr { border-top: 2px solid #e2d8c4; margin: 4px 0; }
+        @keyframes pixelBlink { 0% { filter: drop-shadow(0 0 0px #ffdd99);} 50% { filter: drop-shadow(0 0 6px #ffbb66);} 100% { filter: drop-shadow(0 0 0px);} }
         .correct-flash { animation: pixelBlink 0.3s 2; }
-        .small-note { font-size: 0.45rem; color: #6e7c94; text-align: center; margin-top: 8px; font-family: monospace; }
+        .small-note { font-size: 0.45rem; color: #9c8a68; text-align: center; margin-top: 8px; font-family: monospace; }
         .angle-readout {
-            background: #000000aa;
+            background: #f5edda;
             padding: 6px 8px;
             font-size: 0.55rem;
             font-family: monospace;
-            color: #ffd966;
+            color: #a76f2c;
             display: block;
             margin-top: 8px;
-            border-left: 3px solid #ffaa44;
+            border-left: 3px solid #e9b35f;
             text-align: center;
+            border-radius: 2px;
         }
         .input-group {
             margin-top: 10px;
@@ -188,9 +190,9 @@
             justify-content: center;
         }
         .input-group input {
-            background: #1e2330;
-            border: 1px solid #5f6a7a;
-            color: #ffd966;
+            background: #fffcf0;
+            border: 1px solid #dccfae;
+            color: #6b4e24;
             font-family: monospace;
             font-size: 0.6rem;
             padding: 6px 8px;
@@ -200,11 +202,11 @@
         .input-group button {
             padding: 6px 12px;
             font-size: 0.5rem;
-            background: #4e5b7c;
+            background: #e9dabc;
         }
         .success-badge {
-            background: #5f7343;
-            color: #f9f2cf;
+            background: #e9cf9b;
+            color: #5c421f;
             padding: 4px 8px;
             font-size: 0.5rem;
             text-align: center;
@@ -213,13 +215,13 @@
         }
         .observation-tip {
             font-size: 0.5rem;
-            color: #b8c7e7;
+            color: #9b885c;
             margin-top: 6px;
             text-align: center;
         }
         .case-counter {
             font-size: 0.5rem;
-            color: #ffaa66;
+            color: #b8883a;
             text-align: center;
             margin-top: 5px;
         }
@@ -244,7 +246,7 @@
             <div class="clue-box">
                 <div class="clue-label">📜 定理线索手册</div>
                 <div class="clue-content" id="clueText">当前案件对应的圆定理将在这里展示</div>
-                <div id="mistakeTip" style="font-size:0.5rem; margin-top:6px; color:#e2bc7c;"></div>
+                <div id="mistakeTip" style="font-size:0.5rem; margin-top:6px; color:#b37b2e;"></div>
                 <div id="liveReadout" class="angle-readout">📐 测量数据: --</div>
                 <div id="interactiveInput" class="input-group"></div>
                 <div id="successMsg" class="success-badge" style="display:none;">✨ 定理理解成功 ✨</div>
@@ -279,7 +281,7 @@
         return Math.min(diff, 2*Math.PI - diff);
     }
     
-    // 绘制扇形
+    // 绘制扇形 (浅色主题使用柔和的色彩)
     function drawSector(cx, cy, r, startAng, endAng, color) {
         let a1 = startAng, a2 = endAng;
         let diff = getAngleDiffRad(a1, a2);
@@ -299,7 +301,7 @@
         ctx.fillStyle = color;
         ctx.fillRect(x-5, y-5, 10, 10);
         if(label) {
-            ctx.fillStyle = "#dddd99";
+            ctx.fillStyle = "#6a5a3c";
             ctx.font = "bold 11px 'Courier New'";
             ctx.fillText(label, x-8, y-8);
         }
@@ -331,7 +333,7 @@
     let currentCaseIdx = 0;
     let solvedBadges = [false, false, false, false, false];
     
-    // 案件定义 (完整5个定理，图形精美，展示圆角和扇形等元素)
+    // 案件定义 (完整5个定理，浅色风格适配)
     const CASES = [
         {
             id:0, name:"圆心角定理", title:"CASE #01: 剧院舞台灯错位",
@@ -344,18 +346,18 @@
                 return `∠AOB = ${angleAOB}°  |  ∠COD = ${angleCOD}°`;
             },
             drawCustom: () => {
-                drawSector(geom.cx, geom.cy, geom.r, geom.angA, geom.angB, "rgba(220, 120, 80, 0.6)");
-                drawSector(geom.cx, geom.cy, geom.r, geom.angC, geom.angD, "rgba(80, 160, 220, 0.6)");
-                drawPoint(geom.cx+geom.r*Math.cos(geom.angA), geom.cy+geom.r*Math.sin(geom.angA), "#ffaa66", "A");
-                drawPoint(geom.cx+geom.r*Math.cos(geom.angB), geom.cy+geom.r*Math.sin(geom.angB), "#ffaa66", "B");
-                drawPoint(geom.cx+geom.r*Math.cos(geom.angC), geom.cy+geom.r*Math.sin(geom.angC), "#88ccff", "C");
-                drawPoint(geom.cx+geom.r*Math.cos(geom.angD), geom.cy+geom.r*Math.sin(geom.angD), "#88ccff", "D");
-                ctx.fillStyle = "#ffaa77";
+                drawSector(geom.cx, geom.cy, geom.r, geom.angA, geom.angB, "rgba(210, 140, 90, 0.5)");
+                drawSector(geom.cx, geom.cy, geom.r, geom.angC, geom.angD, "rgba(100, 150, 200, 0.5)");
+                drawPoint(geom.cx+geom.r*Math.cos(geom.angA), geom.cy+geom.r*Math.sin(geom.angA), "#c97e3a", "A");
+                drawPoint(geom.cx+geom.r*Math.cos(geom.angB), geom.cy+geom.r*Math.sin(geom.angB), "#c97e3a", "B");
+                drawPoint(geom.cx+geom.r*Math.cos(geom.angC), geom.cy+geom.r*Math.sin(geom.angC), "#5f8ab3", "C");
+                drawPoint(geom.cx+geom.r*Math.cos(geom.angD), geom.cy+geom.r*Math.sin(geom.angD), "#5f8ab3", "D");
+                ctx.fillStyle = "#b87333";
                 ctx.font = "10px monospace";
-                ctx.fillText("扇形AOB (暖色灯光)", geom.cx-70, geom.cy-45);
-                ctx.fillText("扇形COD (冷色灯光)", geom.cx+20, geom.cy-60);
-                // 圆心标注
-                ctx.fillStyle = "#aaaaff";
+                ctx.fillText("扇形AOB", geom.cx-70, geom.cy-45);
+                ctx.fillStyle = "#4f7a9e";
+                ctx.fillText("扇形COD", geom.cx+20, geom.cy-60);
+                ctx.fillStyle = "#8b6946";
                 ctx.fillText("● 圆心O", geom.cx+8, geom.cy+8);
             }
         },
@@ -382,22 +384,21 @@
                 let by = geom.cy+geom.r*Math.sin(geom.fixedB);
                 let px = geom.cx+geom.r*Math.cos(geom.soldierP);
                 let py = geom.cy+geom.r*Math.sin(geom.soldierP);
-                // 扇形灯光效果
-                drawSector(geom.cx, geom.cy, geom.r, geom.fixedA, geom.fixedB, "rgba(255, 200, 80, 0.35)");
+                drawSector(geom.cx, geom.cy, geom.r, geom.fixedA, geom.fixedB, "rgba(220, 180, 80, 0.35)");
                 ctx.beginPath();
                 ctx.moveTo(ax, ay);
                 ctx.lineTo(px, py);
                 ctx.lineTo(bx, by);
-                ctx.strokeStyle = "#ffaa66";
+                ctx.strokeStyle = "#c68b3e";
                 ctx.lineWidth = 2.5;
                 ctx.stroke();
-                drawPoint(px, py, "#ffcc77", "P");
-                drawPoint(ax, ay, "#88aaff", "A");
-                drawPoint(bx, by, "#ffaa88", "B");
-                ctx.fillStyle = "#ffdd99";
+                drawPoint(px, py, "#d9942e", "P");
+                drawPoint(ax, ay, "#7a9bcb", "A");
+                drawPoint(bx, by, "#d98c3a", "B");
+                ctx.fillStyle = "#b97f45";
                 ctx.font = "9px monospace";
                 ctx.fillText("探照灯光(圆心角)", geom.cx-55, geom.cy-35);
-                ctx.fillStyle = "#ffaa77";
+                ctx.fillStyle = "#c47d34";
                 ctx.fillText("观察员P (圆周角)", px-25, py-12);
             }
         },
@@ -424,29 +425,26 @@
                 let y1 = geom.cy+geom.r*Math.sin(geom.chord1);
                 let x2 = geom.cx+geom.r*Math.cos(geom.chord2);
                 let y2 = geom.cy+geom.r*Math.sin(geom.chord2);
-                // 拱弦
                 ctx.beginPath();
                 ctx.moveTo(x1, y1);
                 ctx.lineTo(x2, y2);
-                ctx.strokeStyle = "#eebb77";
+                ctx.strokeStyle = "#b87c48";
                 ctx.lineWidth = 4;
                 ctx.stroke();
-                // 直径(桥柱)
                 ctx.beginPath();
                 ctx.moveTo(geom.cx, geom.cy-geom.r);
                 ctx.lineTo(geom.cx, geom.cy+geom.r);
-                ctx.strokeStyle = "#aaaaee";
+                ctx.strokeStyle = "#7799bb";
                 ctx.lineWidth = 3;
                 ctx.stroke();
-                drawPoint(x1, y1, "#eebb77", "C");
-                drawPoint(x2, y2, "#eebb77", "D");
-                ctx.fillStyle = "#ccaa77";
+                drawPoint(x1, y1, "#b87c48", "C");
+                drawPoint(x2, y2, "#b87c48", "D");
+                ctx.fillStyle = "#9b6e3e";
                 ctx.fillText("拱弦CD", (x1+x2)/2-25, (y1+y2)/2-12);
-                ctx.fillStyle = "#aaaaff";
+                ctx.fillStyle = "#6585a3";
                 ctx.fillText("桥柱(直径)", geom.cx+8, geom.cy-30);
-                // 中点标记
                 let midX = (x1+x2)/2, midY = (y1+y2)/2;
-                ctx.fillStyle = "#ffffaa";
+                ctx.fillStyle = "#b98f54";
                 ctx.fillRect(midX-2, midY-2, 4, 4);
             }
         },
@@ -473,12 +471,11 @@
                     let rad = i*Math.PI/180;
                     let xo = geom.cx + (geom.r+12)*Math.cos(rad);
                     let yo = geom.cy + (geom.r+12)*Math.sin(rad);
-                    ctx.fillStyle = "#b8a56a";
+                    ctx.fillStyle = "#cbae7a";
                     ctx.fillRect(xo-2, yo-2, 4,4);
                 }
-                // 尖角实心六芒星 (两个正三角形交错)
+                // 尖角实心六芒星 (浅色风格)
                 let starR = geom.r * 0.48;
-                // 正三角形 (朝上)
                 ctx.beginPath();
                 for(let i=0; i<3; i++) {
                     let ang = -Math.PI/2 + i * 2*Math.PI/3;
@@ -488,11 +485,10 @@
                     else ctx.lineTo(x,y);
                 }
                 ctx.closePath();
-                ctx.fillStyle = "#d4af37cc";
+                ctx.fillStyle = "#e6c894cc";
                 ctx.fill();
-                ctx.strokeStyle = "#f5cb5c";
+                ctx.strokeStyle = "#c9a55b";
                 ctx.stroke();
-                // 倒三角形 (朝下)
                 ctx.beginPath();
                 for(let i=0; i<3; i++) {
                     let ang = Math.PI/2 + i * 2*Math.PI/3;
@@ -502,27 +498,25 @@
                     else ctx.lineTo(x,y);
                 }
                 ctx.closePath();
-                ctx.fillStyle = "#eac54fcc";
+                ctx.fillStyle = "#e2bc78cc";
                 ctx.fill();
-                ctx.strokeStyle = "#ffdf88";
+                ctx.strokeStyle = "#dbb059";
                 ctx.stroke();
-                // 中心点
-                ctx.fillStyle = "#ffaa44";
+                ctx.fillStyle = "#c68f3a";
                 ctx.fillRect(geom.cx-3, geom.cy-3, 6, 6);
                 
-                // 四边形
                 let pts = geom.quadAngles.map(ang=>({x: geom.cx+geom.r*Math.cos(ang), y: geom.cy+geom.r*Math.sin(ang)}));
                 ctx.beginPath();
                 ctx.moveTo(pts[0].x, pts[0].y);
                 for(let i=1;i<pts.length;i++) ctx.lineTo(pts[i].x, pts[i].y);
                 ctx.closePath();
-                ctx.strokeStyle = "#eecd99";
+                ctx.strokeStyle = "#c9aa6e";
                 ctx.lineWidth = 2.5;
                 ctx.stroke();
                 for(let i=0;i<pts.length;i++) {
-                    drawPoint(pts[i].x, pts[i].y, "#ffcc77", String.fromCharCode(65+i));
+                    drawPoint(pts[i].x, pts[i].y, "#ddae6e", String.fromCharCode(65+i));
                 }
-                ctx.fillStyle = "#ffdd99";
+                ctx.fillStyle = "#b88648";
                 ctx.font = "9px monospace";
                 ctx.fillText("罗盘指针", geom.cx-25, geom.cy-20);
             }
@@ -546,31 +540,29 @@
                 let ay = geom.cy + geom.r * Math.sin(geom.fixedA);
                 let bx = geom.cx + geom.r * Math.cos(geom.fixedB);
                 let by = geom.cy + geom.r * Math.sin(geom.fixedB);
-                drawPoint(ax, ay, "#88aaff", "A");
-                drawPoint(bx, by, "#88aaff", "B");
-                // 切线线段
+                drawPoint(ax, ay, "#7f9fc0", "A");
+                drawPoint(bx, by, "#7f9fc0", "B");
                 ctx.beginPath();
                 ctx.moveTo(geom.externP.x, geom.externP.y);
                 ctx.lineTo(ax, ay);
-                ctx.strokeStyle = "#ffaa77";
+                ctx.strokeStyle = "#d98f44";
                 ctx.lineWidth = 2.5;
                 ctx.stroke();
                 ctx.beginPath();
                 ctx.moveTo(geom.externQ.x, geom.externQ.y);
                 ctx.lineTo(bx, by);
-                ctx.strokeStyle = "#77ffaa";
+                ctx.strokeStyle = "#6f9e6f";
                 ctx.stroke();
-                drawPoint(geom.externP.x, geom.externP.y, "#ffaa77", "P");
-                drawPoint(geom.externQ.x, geom.externQ.y, "#77ffaa", "P'");
-                ctx.fillStyle = "#ffaa77";
+                drawPoint(geom.externP.x, geom.externP.y, "#d98f44", "P");
+                drawPoint(geom.externQ.x, geom.externQ.y, "#6f9e6f", "P'");
+                ctx.fillStyle = "#b57232";
                 ctx.font = "9px monospace";
                 ctx.fillText("水管PA", geom.externP.x-25, geom.externP.y-10);
-                ctx.fillStyle = "#77ffaa";
+                ctx.fillStyle = "#5f875f";
                 ctx.fillText("水管P'B", geom.externQ.x-28, geom.externQ.y-10);
-                // 辅助虚线圆
                 ctx.beginPath();
                 ctx.arc(geom.cx, geom.cy, geom.r, 0, 2*Math.PI);
-                ctx.strokeStyle = "#6a7a8e";
+                ctx.strokeStyle = "#b8a77c";
                 ctx.setLineDash([5, 5]);
                 ctx.stroke();
                 ctx.setLineDash([]);
@@ -584,47 +576,38 @@
     function updateUI() {
         let caseData = CASES[currentCaseIdx];
         
-        // 更新简报
         document.getElementById('caseBrief').innerHTML = `
             <h2>${caseData.title}</h2>
             <p>${caseData.desc}</p>
         `;
         
-        // 更新线索手册
         document.getElementById('clueText').innerHTML = `
-            <strong style="color:#ffcc88;">${caseData.theorem}</strong><br><br>
+            <strong style="color:#c07a2e;">${caseData.theorem}</strong><br><br>
             ${caseData.detail}
         `;
         
-        // 更新测量读数
         let readout = caseData.getReadout();
         document.getElementById('liveReadout').innerHTML = `📐 ${readout}`;
         
-        // 更新状态提示
         document.getElementById('statusMsg').innerHTML = `📋 案件 ${currentCaseIdx+1}/5<br>观察图形，理解${caseData.name}的几何关系`;
-        
-        // 更新案件计数器
         document.getElementById('caseCounter').innerHTML = `🔍 案件 ${currentCaseIdx+1} / 5 · ${caseData.name}`;
         
-        // 更新徽章显示 (展示哪些案件已浏览/理解)
         updateBadges();
         
-        // 隐藏验证输入框 (展示模式，不需要填写验证)
-        document.getElementById('interactiveInput').innerHTML = `<div style="color:#8bc34a; font-size:0.55rem;">✨ 观察图形中的角度/长度关系，理解定理内容 ✨</div>`;
+        document.getElementById('interactiveInput').innerHTML = `<div style="color:#b28b54; font-size:0.55rem;">✨ 观察图形中的角度/长度关系，理解定理内容 ✨</div>`;
         document.getElementById('successMsg').style.display = "none";
         document.getElementById('mistakeTip').innerHTML = "💡 点击「下一案件」浏览所有圆定理的几何演示";
         
-        // 重绘画布
         drawCanvas();
     }
     
     function drawCanvas() {
         ctx.clearRect(0, 0, w, h);
-        // 背景网格 (像素风格)
-        ctx.fillStyle = "#0c1020";
+        // 浅色背景网格
+        ctx.fillStyle = "#fff9ef";
         ctx.fillRect(0, 0, w, h);
-        ctx.strokeStyle = "#2a2f3a";
-        ctx.lineWidth = 0.5;
+        ctx.strokeStyle = "#e2d8c4";
+        ctx.lineWidth = 0.8;
         for(let i=0;i<w;i+=30){
             ctx.beginPath();
             ctx.moveTo(i,0);
@@ -638,26 +621,22 @@
             ctx.stroke();
         }
         
-        // 绘制圆
         ctx.beginPath();
         ctx.arc(geom.cx, geom.cy, geom.r, 0, 2*Math.PI);
-        ctx.strokeStyle = "#8c9bb0";
-        ctx.lineWidth = 2;
+        ctx.strokeStyle = "#cbbf9f";
+        ctx.lineWidth = 2.2;
         ctx.stroke();
-        ctx.fillStyle = "#1e2432aa";
+        ctx.fillStyle = "#fff7eacc";
         ctx.fill();
         
-        // 绘制当前案件的特定图形
         let caseData = CASES[currentCaseIdx];
         caseData.drawCustom();
         
-        // 额外标注圆心
-        ctx.fillStyle = "#ffaa66";
+        ctx.fillStyle = "#c68f44";
         ctx.fillRect(geom.cx-2, geom.cy-2, 4, 4);
     }
     
     function resetCase() {
-        // 重置为每个案件的默认几何值 (让图形清晰可读)
         if(currentCaseIdx === 0) {
             geom.angA = 0.9; geom.angB = 2.4;
             geom.angC = 2.7; geom.angD = 4.0;
@@ -690,18 +669,16 @@
         let container = document.getElementById('badgeContainer');
         container.innerHTML = CASES.map((c, i) => {
             let isActive = (i === currentCaseIdx);
-            return `<div class="medal ${isActive ? 'active' : ''}" style="${isActive ? 'border:2px solid #ffaa66;' : ''}">
+            return `<div class="medal ${isActive ? 'active' : ''}" style="${isActive ? 'border:2px solid #e3b064;' : ''}">
                         ${c.name.slice(0,4)}
                     </div>`;
         }).join('');
     }
     
-    // 绑定事件
     document.getElementById('resetBtn').addEventListener('click', resetCase);
     document.getElementById('nextCaseBtn').addEventListener('click', nextCase);
     document.getElementById('prevCaseBtn').addEventListener('click', prevCase);
     
-    // 初始化
     updateUI();
     drawCanvas();
 })();
