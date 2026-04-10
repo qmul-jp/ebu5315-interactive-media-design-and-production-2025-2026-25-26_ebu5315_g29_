@@ -265,6 +265,29 @@
 
     <script>
         (function(){
+            // ========== 音效管理 ==========
+            const sounds = {
+                drag: new Audio('assets/sounds/drag.mp3'),
+                success: new Audio('assets/sounds/success.mp3'),
+                error: new Audio('assets/sounds/error.mp3'),
+                pageFlip: new Audio('assets/sounds/page-flip.mp3')
+            };
+
+            // 预加载音效
+            for (let key in sounds) {
+                sounds[key].load();
+            }
+
+            // 统一的音效播放函数
+            function playSound(soundName, volume = 0.5) {
+                const sound = sounds[soundName];
+                if (sound) {
+                    sound.volume = volume;
+                    sound.currentTime = 0;
+                    sound.play().catch(e => console.log('音效播放失败:', e));
+                }
+            }
+            
             // ========== 角度计算函数（统一使用劣弧角 0-180°）==========
             // 计算劣弧圆心角（弧度），范围 0 ~ π
             function getMinorArcAngleRad(a, b) {
@@ -598,6 +621,10 @@
                 let statusDiv = document.getElementById('statusMsg');
                 let stageDiv = document.querySelector('.canvas-stage');
                 if(success && !solvedBadges[currentCaseIdx]) {
+                    // 条件首次满足时播放成功音效
+                    if(!conditionMet) {
+                        playSound('success', 0.5);
+                    }
                     clueDiv.innerHTML = `✨ 线索解锁 ✨<br>${caseData.theorem}<br>条件满足！`;
                     mistakeDiv.innerHTML = `[正确] 定理条件成立！可结案。`;
                     statusDiv.innerHTML = `条件满足！点击「结案陈词」完成推理。`;
@@ -610,6 +637,10 @@
                     clueDiv.innerHTML = `${caseData.theorem}<br>条件未满足`;
                     let hintMsg = (caseData.id===0?"使两个扇形角度相等（显示的角度相等）":(caseData.id===2?"使弦垂直于直径":(caseData.id===4?"将P和P'都拖到交点处":"调整图形")));
                     mistakeDiv.innerHTML = `[未满足] ${hintMsg}`;
+                    // 条件不满足且之前满足过，播放错误音效
+                    if(conditionMet) {
+                        playSound('error', 0.4);
+                    }
                     if(conditionMet){ stageDiv.classList.add('wrong-shake'); setTimeout(()=>stageDiv.classList.remove('wrong-shake'),300); }
                     conditionMet = false;
                 }
@@ -643,25 +674,59 @@
                     let bP={x:geom.cx+geom.r*Math.cos(geom.angB),y:geom.cy+geom.r*Math.sin(geom.angB)};
                     let cP={x:geom.cx+geom.r*Math.cos(geom.angC),y:geom.cy+geom.r*Math.sin(geom.angC)};
                     let dP={x:geom.cx+geom.r*Math.cos(geom.angD),y:geom.cy+geom.r*Math.sin(geom.angD)};
-                    if(Math.hypot(mx-aP.x, my-aP.y)<thresh) dragTarget="angA";
-                    else if(Math.hypot(mx-bP.x, my-bP.y)<thresh) dragTarget="angB";
-                    else if(Math.hypot(mx-cP.x, my-cP.y)<thresh) dragTarget="angC";
-                    else if(Math.hypot(mx-dP.x, my-dP.y)<thresh) dragTarget="angD";
+                    if(Math.hypot(mx-aP.x, my-aP.y)<thresh) {
+                        dragTarget="angA";
+                        playSound('drag', 0.3);
+                    }
+                    else if(Math.hypot(mx-bP.x, my-bP.y)<thresh) {
+                        dragTarget="angB";
+                        playSound('drag', 0.3);
+                    }
+                    else if(Math.hypot(mx-cP.x, my-cP.y)<thresh) {
+                        dragTarget="angC";
+                        playSound('drag', 0.3);
+                    }
+                    else if(Math.hypot(mx-dP.x, my-dP.y)<thresh) {
+                        dragTarget="angD";
+                        playSound('drag', 0.3);
+                    }
                 } else if(currentCaseIdx===1){
                     let pp={x:geom.cx+geom.r*Math.cos(geom.soldierP),y:geom.cy+geom.r*Math.sin(geom.soldierP)};
-                    if(Math.hypot(mx-pp.x, my-pp.y)<thresh) dragTarget="soldier";
+                    if(Math.hypot(mx-pp.x, my-pp.y)<thresh) {
+                        dragTarget="soldier";
+                        playSound('drag', 0.3);
+                    }
                 } else if(currentCaseIdx===2){
                     let c1={x:geom.cx+geom.r*Math.cos(geom.chord1),y:geom.cy+geom.r*Math.sin(geom.chord1)};
                     let c2={x:geom.cx+geom.r*Math.cos(geom.chord2),y:geom.cy+geom.r*Math.sin(geom.chord2)};
-                    if(Math.hypot(mx-c1.x, my-c1.y)<thresh) dragTarget="chord1";
-                    else if(Math.hypot(mx-c2.x, my-c2.y)<thresh) dragTarget="chord2";
+                    if(Math.hypot(mx-c1.x, my-c1.y)<thresh) {
+                        dragTarget="chord1";
+                        playSound('drag', 0.3);
+                    }
+                    else if(Math.hypot(mx-c2.x, my-c2.y)<thresh) {
+                        dragTarget="chord2";
+                        playSound('drag', 0.3);
+                    }
                 } else if(currentCaseIdx===3){
                     let pts=geom.quadAngles.map(ang=>({x:geom.cx+geom.r*Math.cos(ang),y:geom.cy+geom.r*Math.sin(ang)}));
-                    for(let i=0;i<pts.length;i++) if(Math.hypot(mx-pts[i].x, my-pts[i].y)<thresh){ dragTarget="quadVertex"; dragQuadIdx=i; break; }
+                    for(let i=0;i<pts.length;i++) {
+                        if(Math.hypot(mx-pts[i].x, my-pts[i].y)<thresh){ 
+                            dragTarget="quadVertex"; 
+                            dragQuadIdx=i;
+                            playSound('drag', 0.3);
+                            break; 
+                        }
+                    }
                 } else if(currentCaseIdx===4){
                     let pPoint=getPPoint(), qPoint=getQPoint();
-                    if(Math.hypot(mx-pPoint.x, my-pPoint.y)<22) dragTarget="paramP";
-                    else if(Math.hypot(mx-qPoint.x, my-qPoint.y)<22) dragTarget="paramQ";
+                    if(Math.hypot(mx-pPoint.x, my-pPoint.y)<22) {
+                        dragTarget="paramP";
+                        playSound('drag', 0.3);
+                    }
+                    else if(Math.hypot(mx-qPoint.x, my-qPoint.y)<22) {
+                        dragTarget="paramQ";
+                        playSound('drag', 0.3);
+                    }
                 }
             }
             
@@ -695,7 +760,10 @@
                 verifyAndUpdate();
             }
             
-            function onMouseUp(){ dragTarget=null; dragQuadIdx=-1; }
+            function onMouseUp(){ 
+                dragTarget=null; 
+                dragQuadIdx=-1; 
+            }
             
             function resetCase(){
                 if(currentCaseIdx===0){ geom.angA=0.7; geom.angB=2.0; geom.angC=2.5; geom.angD=3.8; conditionMet=false; }
@@ -725,6 +793,7 @@
                         let isCorrect=val==="1/2"||val==="0.5"||val==="½"||parseFloat(val)===0.5; 
                         if(isCorrect && !solvedBadges[1]){ 
                             conditionMet=true; solvedBadges[1]=true; 
+                            playSound('success', 0.5);
                             document.getElementById('clueText').innerHTML=`✨ 线索解锁 ✨<br>${CASES[1].theorem}<br>∠APB = 1/2 ∠AOB`; 
                             document.getElementById('mistakeTip').innerHTML=`[正确] 关系式正确！`; 
                             document.getElementById('statusMsg').innerHTML=`定理验证成功！点击结案。`; 
@@ -733,6 +802,7 @@
                         } else if(isCorrect){ 
                             document.getElementById('mistakeTip').innerHTML=`[正确] 但此案已破。`; 
                         } else { 
+                            playSound('error', 0.4);
                             document.getElementById('mistakeTip').innerHTML=`[错误] ∠APB = ? × ∠AOB，再观察角度数值！`; 
                         } 
                         verifyAndUpdate(); 
@@ -743,6 +813,7 @@
                         let val=parseInt(document.getElementById('sumInput').value); 
                         if(val===180 && !solvedBadges[3]){ 
                             conditionMet=true; solvedBadges[3]=true; 
+                            playSound('success', 0.5);
                             document.getElementById('clueText').innerHTML=`✨ 线索解锁 ✨<br>${CASES[3].theorem}<br>对角和为180°`; 
                             document.getElementById('mistakeTip').innerHTML=`[正确] 对角和180°！`; 
                             document.getElementById('statusMsg').innerHTML=`定理验证成功！点击结案。`; 
@@ -751,6 +822,7 @@
                         } else if(val===180){ 
                             document.getElementById('mistakeTip').innerHTML=`[正确] 但此案已破。`; 
                         } else { 
+                            playSound('error', 0.4);
                             document.getElementById('mistakeTip').innerHTML=`[错误] 对角和应该是180°！`; 
                         } 
                         verifyAndUpdate(); 
@@ -761,6 +833,7 @@
             }
             
             function nextCase(){ 
+                playSound('pageFlip', 0.4);
                 currentCaseIdx=(currentCaseIdx+1)%5; 
                 document.getElementById('caseBrief').innerHTML=`<h2>${CASES[currentCaseIdx].title}</h2><p>${CASES[currentCaseIdx].desc}</p>`; 
                 resetCase(); 
@@ -771,6 +844,7 @@
             }
             
             function prevCase(){ 
+                playSound('pageFlip', 0.4);
                 currentCaseIdx=(currentCaseIdx-1+5)%5; 
                 document.getElementById('caseBrief').innerHTML=`<h2>${CASES[currentCaseIdx].title}</h2><p>${CASES[currentCaseIdx].desc}</p>`; 
                 resetCase(); 
@@ -784,11 +858,13 @@
                 if(conditionMet && !solvedBadges[currentCaseIdx]){ 
                     solvedBadges[currentCaseIdx]=true; 
                     updateBadges(); 
+                    playSound('success', 0.6);
                     document.getElementById('statusMsg').innerHTML="🏆 像素侦探徽章GET！案件完美落幕！"; 
                     document.getElementById('successMsg').style.display="block"; 
                 } else if(conditionMet && solvedBadges[currentCaseIdx]){ 
                     document.getElementById('statusMsg').innerHTML="🎉 已破获此案，继续挑战新案件吧！"; 
                 } else { 
+                    playSound('error', 0.4);
                     document.getElementById('statusMsg').innerHTML="⚠️ 尚未满足定理条件，请先构造正确图形再结案。"; 
                 } 
             }
