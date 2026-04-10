@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>圆定理侦探社 | 像素风几何解谜 · 完整游戏</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            image-rendering: crisp-edges;
+            image-rendering: pixelated;
+        }
+        
+        .game-full-container {
+            background: #e8eef2;
+            padding: 20px 20px 30px;
+            width: 100%;
+        }
+        
+        .detective-container {
+            background: #fef9e8;
+            box-shadow: 0 0 0 4px #cbd5e0, 0 0 0 8px #e2e8f0, 0 8px 24px rgba(0,0,0,0.1);
+            padding: 1.2rem;
+            max-width: 1400px;
+            width: 100%;
+            margin: 0 auto;
+            border-radius: 0;
+        }
+        
+        .game-layout {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            justify-content: center;
+        }
+        
+        .canvas-stage {
+            flex: 3;
+            min-width: 500px;
+            background: #fef7e0;
+            border: 3px solid #b9c3d0;
+            box-shadow: inset 0 0 0 2px #f5f0e0, 4px 4px 0px 0px #d0d8e4;
+            padding: 0.5rem;
+            position: relative;
+            cursor: crosshair;
+        }
+        
+        canvas {
+            display: block;
+            width: 100%;
+            background: #fff9ef;
+            image-rendering: crisp-edges;
+            image-rendering: pixelated;
+            cursor: crosshair;
+            box-shadow: inset 0 0 0 1px #e2dcc0;
+        }
+        
+        .case-panel {
+            flex: 1.2;
+            min-width: 280px;
+            background: #fff6e8;
+            border: 3px solid #cbd5e0;
+            padding: 1rem;
+            box-shadow: inset 2px 2px 0px #fffef8, 4px 4px 0px #d0d8e4;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .brief {
+            background: #fffcf0;
+            border-left: 6px solid #e9b35f;
+            padding: 0.8rem;
+        }
+        
+        .brief h2 {
+            margin: 0 0 0.5rem;
+            font-size: 0.85rem;
+            color: #5c4b2c;
+        }
+        
+        .brief p {
+            margin: 0;
+            font-size: 0.65rem;
+            color: #7a6848;
+        }
+        
+        .status-area {
+            background: #fff4e4;
+            border: 2px solid #e0d5c0;
+            padding: 0.6rem;
+            font-size: 0.6rem;
+            color: #6b5a3e;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .clue-box {
+            background: #fffdf5;
+            border: 2px dashed #dac29c;
+            padding: 0.7rem;
+            min-height: 150px;
+        }
+        
+        .clue-label {
+            font-weight: bold;
+            color: #b87c2e;
+            font-size: 0.55rem;
+            margin-bottom: 8px;
+        }
+        
+        .clue-content {
+            font-size: 0.65rem;
+            color: #5a4a2e;
+            font-family: 'Courier New', monospace;
+            word-break: break-word;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            background: #f0e4d0;
+            border: none;
+            padding: 0.6rem 0.8rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.55rem;
+            color: #5c4b2c;
+            cursor: pointer;
+            box-shadow: 0 3px 0 #cbbf9f;
+            transition: 0.05s linear;
+            text-transform: uppercase;
+        }
+        
+        button:active {
+            transform: translateY(2px);
+            box-shadow: 0 1px 0 #cbbf9f;
+        }
+        
+        button.primary { background: #e5d5b8; }
+        button.warning { background: #e6cfaa; }
+        
+        .badge-row {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .medal {
+            background: #eae2d0;
+            border: 1px solid #ccbc9c;
+            padding: 4px 6px;
+            font-size: 0.5rem;
+            color: #7e6a48;
+        }
+        
+        .medal.active { background: #e9cf9b; color: #4a371a; border-color: #dba643; }
+        
+        .angle-readout {
+            background: #f5edda;
+            padding: 6px 8px;
+            font-size: 0.55rem;
+            font-family: monospace;
+            color: #a76f2c;
+            margin-top: 8px;
+            text-align: center;
+        }
+        
+        .input-group {
+            margin-top: 10px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .input-group input {
+            background: #fffcf0;
+            border: 1px solid #dccfae;
+            color: #6b4e24;
+            font-family: monospace;
+            font-size: 0.6rem;
+            padding: 6px 8px;
+            width: 70px;
+            text-align: center;
+        }
+        
+        .success-badge {
+            background: #e9cf9b;
+            color: #5c421f;
+            padding: 4px 8px;
+            font-size: 0.5rem;
+            text-align: center;
+            margin-top: 8px;
+            display: none;
+        }
+        
+        .case-counter {
+            font-size: 0.5rem;
+            color: #b8883a;
+            text-align: center;
+        }
+        
+        @keyframes pixelBlink { 0% { filter: drop-shadow(0 0 0px #ffdd99);} 50% { filter: drop-shadow(0 0 6px #ffbb66);} 100% { filter: drop-shadow(0 0 0px);} }
+        @keyframes shakeAnim { 0% { transform: translate(1px, 1px);} 25% { transform: translate(-1px, 0px);} 50% { transform: translate(1px, -1px);} 75% { transform: translate(0px, 1px);} 100% { transform: translate(0,0);} }
+        
+        .correct-flash { animation: pixelBlink 0.3s 2; }
+        .wrong-shake { animation: shakeAnim 0.15s 2; }
+        
+        @media (max-width: 768px) {
+            .canvas-stage { min-width: 280px; }
+        }
+        
+        body.dark-mode .game-full-container { background: #1e2a32; }
+        body.dark-mode .detective-container { background: #2c3e2f; }
+        body.dark-mode .canvas-stage { background: #2f3e2c; }
+        body.dark-mode canvas { background: #2c3824; }
+        body.dark-mode .case-panel { background: #2c3a28; }
+        body.dark-mode .brief, body.dark-mode .status-area, body.dark-mode .clue-box { background: #3e4e36; color: #eeddaa; }
+        body.dark-mode button { background: #5a6e4a; color: #fef0cf; }
+    </style>
+</head>
+<body>
+    <div class="game-full-container">
+        <div class="detective-container">
+            <div class="game-layout">
+                <div class="canvas-stage">
+                    <canvas id="geometryCanvas" width="720" height="540" style="width:100%; height:auto;"></canvas>
+                    <div class="small-note" style="font-size:0.45rem; text-align:center; margin-top:5px;">🖱️ 拖拽彩色圆点 | 观察角度 | 完成定理推理</div>
+                </div>
+                <div class="case-panel">
+                    <div class="brief" id="caseBrief">
+                        <h2>CASE #01: 剧院舞台灯错位</h2>
+                        <p>拖拽A/B/C/D点，使圆心角AOB = 圆心角COD</p>
+                    </div>
+                    <div class="status-area" id="statusMsg">
+                        📋 侦探手册<br>拖拽圆上的彩色点，观察角度变化
+                    </div>
+                    <div class="clue-box">
+                        <div class="clue-label">📜 定理线索手册</div>
+                        <div class="clue-content" id="clueText">当前案件对应的圆定理将在这里展示</div>
+                        <div id="mistakeTip" style="font-size:0.5rem; margin-top:6px; color:#b37b2e;"></div>
+                        <div id="liveReadout" class="angle-readout">📐 测量数据: --</div>
+                        <div id="interactiveInput" class="input-group"></div>
+                        <div id="successMsg" class="success-badge">✨ 定理理解成功 ✨</div>
+                    </div>
+                    <div class="action-buttons">
+                        <button id="resetBtn" class="warning">🔄 重置案件</button>
+                        <button id="nextCaseBtn" class="primary">🔍 下一案件 →</button>
+                        <button id="prevCaseBtn" class="primary">← 上一案件</button>
+                        <button id="proveBtn" class="primary">🏆 结案陈词</button>
+                    </div>
+                    <hr>
+                    <div class="badge-row" id="badgeContainer"></div>
+                    <div class="case-counter" id="caseCounter">案件 1 / 5</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function(){
+            // ========== 音效管理 ==========
+            const sounds = {
+                drag: new Audio('assets/sounds/drag.mp3'),
+                success: new Audio('assets/sounds/success.mp3'),
+                error: new Audio('assets/sounds/error.mp3'),
+                pageFlip: new Audio('assets/sounds/page-flip.mp3')
+            };
+
+            // 预加载音效
+            for (let key in sounds) {
+                sounds[key].load();
+            }
+
+            // 统一的音效播放函数
+            function playSound(soundName, volume = 0.5) {
+                const sound = sounds[soundName];
+                if (sound) {
+                    sound.volume = volume;
+                    sound.currentTime = 0;
+                    sound.play().catch(e => console.log('音效播放失败:', e));
+                }
+            }
+            
+            // ========== 角度计算函数（统一使用劣弧角 0-180°）==========
+            // 计算劣弧圆心角（弧度），范围 0 ~ π
+            function getMinorArcAngleRad(a, b) {
+                let diff = Math.abs(a - b);
+                return Math.min(diff, 2 * Math.PI - diff);
+            }
+            
+            // 计算劣弧圆心角（度数），范围 0 ~ 180
+            function getMinorArcAngleDegrees(a, b) {
+                return Math.round(getMinorArcAngleRad(a, b) * 180 / Math.PI);
+            }
+            
+            // 通用角度计算函数（用于其他案件）
+            function computeAngle(ax, ay, bx, by, cx, cy) {
+                let baX = ax - bx, baY = ay - by;
+                let bcX = cx - bx, bcY = cy - by;
+                let dot = baX*bcX + baY*bcY;
+                let mag = Math.hypot(baX, baY) * Math.hypot(bcX, bcY);
+                if(mag === 0) return 0;
+                return Math.acos(Math.min(1, Math.max(-1, dot/mag)));
+            }
+            
+            // 绘制扇区（始终绘制劣弧，与显示角度保持一致）
+            function drawSector(cx, cy, r, startAng, endAng, color) {
+                let start = startAng;
+                let end = endAng;
+                
+                // 计算劣弧的起始和结束角度（确保绘制的是小弧）
+                let diff = end - start;
+                // 归一化差值到 [-π, π]
+                while (diff > Math.PI) diff -= 2 * Math.PI;
+                while (diff < -Math.PI) diff += 2 * Math.PI;
+                
+                // 如果差值为负，说明end在start逆时针方向，需要交换
+                if (diff < 0) {
+                    // 绘制劣弧时，确保start到end是正向小弧
+                    let temp = start;
+                    start = end;
+                    end = temp;
+                    diff = -diff;
+                }
+                
+                ctx.beginPath();
+                ctx.moveTo(cx, cy);
+                ctx.arc(cx, cy, r, start, end);
+                ctx.closePath();
+                ctx.fillStyle = color;
+                ctx.fill();
+            }
+            
+            function drawPoint(x, y, color, label) {
+                ctx.fillStyle = color;
+                ctx.fillRect(x-6, y-6, 12, 12);
+                if(label) {
+                    ctx.fillStyle = "#5a4a2e";
+                    ctx.font = "bold 11px 'Courier New'";
+                    ctx.fillText(label, x-8, y-10);
+                }
+            }
+            
+            function getTangentLine(pointAngle, cx, cy, r) {
+                let px = cx + r * Math.cos(pointAngle);
+                let py = cy + r * Math.sin(pointAngle);
+                let dirX = -Math.sin(pointAngle);
+                let dirY = Math.cos(pointAngle);
+                return { px, py, dirX, dirY };
+            }
+            
+            function getLineIntersection(line1, line2) {
+                let x1 = line1.px, y1 = line1.py;
+                let x2 = line2.px, y2 = line2.py;
+                let dx1 = line1.dirX, dy1 = line1.dirY;
+                let dx2 = line2.dirX, dy2 = line2.dirY;
+                let det = dx1 * dy2 - dy1 * dx2;
+                if (Math.abs(det) < 0.001) return null;
+                let t1 = ((x2 - x1) * dy2 - (y2 - y1) * dx2) / det;
+                return { x: x1 + t1 * dx1, y: y1 + t1 * dy1, t: t1 };
+            }
+            
+            function getPointOnTangent(t, tangent) {
+                return { x: tangent.px + tangent.dirX * t, y: tangent.py + tangent.dirY * t };
+            }
+            
+            let canvas = document.getElementById('geometryCanvas');
+            let ctx = canvas.getContext('2d');
+            let w = 720, h = 540;
+            canvas.width = w; canvas.height = h;
+            
+            let geom = {
+                cx: w/2, cy: h/2 - 8, r: 170,
+                angA: 0.7, angB: 2.0, angC: 2.5, angD: 3.8,
+                fixedA: 0.8, fixedB: 2.5, soldierP: 3.2,
+                chord1: 1.0, chord2: 2.2,
+                quadAngles: [0.5, 1.8, 2.7, 4.0],
+                paramP: 10, paramQ: -15
+            };
+            
+            function getTangentA() { return getTangentLine(geom.fixedA, geom.cx, geom.cy, geom.r); }
+            function getTangentB() { return getTangentLine(geom.fixedB, geom.cx, geom.cy, geom.r); }
+            function getTangentIntersection() { return getLineIntersection(getTangentA(), getTangentB()); }
+            function getPPoint() { return getPointOnTangent(geom.paramP, getTangentA()); }
+            function getQPoint() { return getPointOnTangent(geom.paramQ, getTangentB()); }
+            
+            let currentCaseIdx = 0;
+            let solvedBadges = [false, false, false, false, false];
+            let conditionMet = false;
+            let dragTarget = null;
+            let dragQuadIdx = -1;
+            
+            const CASES = [
+                { 
+                    id:0, name:"圆心角定理", title:"CASE #01: 剧院舞台灯错位", 
+                    desc:"🎭 拖拽A/B/C/D点，使圆心角AOB = 圆心角COD", 
+                    theorem:"[圆心角定理] 相等的圆心角所对的弧相等，所对的弦相等",
+                    // 条件判断使用劣弧角度
+                    check:(state) => { 
+                        let aob = getMinorArcAngleRad(state.angA, state.angB);
+                        let cod = getMinorArcAngleRad(state.angC, state.angD);
+                        return Math.abs(aob - cod) < 0.08;
+                    },
+                    // 显示使用劣弧角度（0-180°），与视觉扇区完全一致
+                    getReadout:(state) => { 
+                        let aob = getMinorArcAngleDegrees(state.angA, state.angB);
+                        let cod = getMinorArcAngleDegrees(state.angC, state.angD);
+                        return `∠AOB = ${aob}°  |  ∠COD = ${cod}°`;
+                    },
+                    drawCustom: () => { 
+                        drawSector(geom.cx, geom.cy, geom.r, geom.angA, geom.angB, "rgba(210, 140, 90, 0.5)");
+                        drawSector(geom.cx, geom.cy, geom.r, geom.angC, geom.angD, "rgba(100, 150, 200, 0.5)");
+                        drawPoint(geom.cx+geom.r*Math.cos(geom.angA), geom.cy+geom.r*Math.sin(geom.angA), "#c97e3a", "A");
+                        drawPoint(geom.cx+geom.r*Math.cos(geom.angB), geom.cy+geom.r*Math.sin(geom.angB), "#c97e3a", "B");
+                        drawPoint(geom.cx+geom.r*Math.cos(geom.angC), geom.cy+geom.r*Math.sin(geom.angC), "#5f8ab3", "C");
+                        drawPoint(geom.cx+geom.r*Math.cos(geom.angD), geom.cy+geom.r*Math.sin(geom.angD), "#5f8ab3", "D");
+                        ctx.fillStyle = "#b87333";
+                        ctx.fillText("扇形AOB", geom.cx-70, geom.cy-45);
+                        ctx.fillStyle = "#4f7a9e";
+                        ctx.fillText("扇形COD", geom.cx+20, geom.cy-60);
+                    } 
+                },
+                { 
+                    id:1, name:"圆周角定理", title:"CASE #02: 瞭望塔探照灯", 
+                    desc:"🏰 拖拽锡兵P，观察∠APB和∠AOB的关系，填写正确答案", 
+                    theorem:"[圆周角定理] 同弧所对圆周角是圆心角的一半", 
+                    check:(state) => { return true; }, 
+                    getReadout:(state) => { 
+                        let centerAng = getMinorArcAngleRad(state.fixedA, state.fixedB);
+                        let ax = state.cx+state.r*Math.cos(state.fixedA);
+                        let ay = state.cy+state.r*Math.sin(state.fixedA);
+                        let bx = state.cx+state.r*Math.cos(state.fixedB);
+                        let by = state.cy+state.r*Math.sin(state.fixedB);
+                        let px = state.cx+state.r*Math.cos(state.soldierP);
+                        let py = state.cy+state.r*Math.sin(state.soldierP);
+                        let angleAPB = computeAngle(ax, ay, px, py, bx, by);
+                        return `∠AOB = ${Math.round(centerAng*180/Math.PI)}°  |  ∠APB = ${Math.round(angleAPB*180/Math.PI)}°`; 
+                    }, 
+                    drawCustom: () => { 
+                        let ax = geom.cx+geom.r*Math.cos(geom.fixedA);
+                        let ay = geom.cy+geom.r*Math.sin(geom.fixedA);
+                        let bx = geom.cx+geom.r*Math.cos(geom.fixedB);
+                        let by = geom.cy+geom.r*Math.sin(geom.fixedB);
+                        let px = geom.cx+geom.r*Math.cos(geom.soldierP);
+                        let py = geom.cy+geom.r*Math.sin(geom.soldierP);
+                        drawSector(geom.cx, geom.cy, geom.r, geom.fixedA, geom.fixedB, "rgba(220, 180, 80, 0.35)");
+                        ctx.beginPath();
+                        ctx.moveTo(ax, ay);
+                        ctx.lineTo(px, py);
+                        ctx.lineTo(bx, by);
+                        ctx.strokeStyle = "#c68b3e";
+                        ctx.lineWidth = 2.5;
+                        ctx.stroke();
+                        drawPoint(px, py, "#d9942e", "P");
+                        drawPoint(ax, ay, "#7a9bcb", "A");
+                        drawPoint(bx, by, "#d98c3a", "B");
+                    } 
+                },
+                { 
+                    id:2, name:"垂径定理", title:"CASE #03: 古桥石拱裂缝", 
+                    desc:"🌉 拖拽弦端点C/D，使桥柱(直径)垂直于弦CD", 
+                    theorem:"[垂径定理] 垂直于弦的直径平分这条弦", 
+                    check:(state) => { 
+                        let x1 = state.cx+state.r*Math.cos(state.chord1), y1 = state.cy+state.r*Math.sin(state.chord1);
+                        let x2 = state.cx+state.r*Math.cos(state.chord2), y2 = state.cy+state.r*Math.sin(state.chord2);
+                        let chordX = x2-x1, chordY = y2-y1;
+                        let dot = chordX*0 + chordY*1;
+                        let len = Math.hypot(chordX, chordY);
+                        if(len < 0.1) return false;
+                        return Math.abs(dot) / len < 0.12;
+                    }, 
+                    getReadout:(state) => { 
+                        let x1 = state.cx+state.r*Math.cos(state.chord1), y1 = state.cy+state.r*Math.sin(state.chord1);
+                        let x2 = state.cx+state.r*Math.cos(state.chord2), y2 = state.cy+state.r*Math.sin(state.chord2);
+                        let chordX = x2-x1, chordY = y2-y1;
+                        let dot = chordX*0 + chordY*1;
+                        let len = Math.hypot(chordX, chordY);
+                        let isPerp = len > 0.1 ? Math.abs(dot) / len < 0.12 : false;
+                        return `垂直: ${isPerp ? "✓ 是" : "✗ 否"}`; 
+                    }, 
+                    drawCustom: () => { 
+                        let x1 = geom.cx+geom.r*Math.cos(geom.chord1), y1 = geom.cy+geom.r*Math.sin(geom.chord1);
+                        let x2 = geom.cx+geom.r*Math.cos(geom.chord2), y2 = geom.cy+geom.r*Math.sin(geom.chord2);
+                        ctx.beginPath();
+                        ctx.moveTo(x1, y1);
+                        ctx.lineTo(x2, y2);
+                        ctx.strokeStyle = "#b87c48";
+                        ctx.lineWidth = 4;
+                        ctx.stroke();
+                        ctx.beginPath();
+                        ctx.moveTo(geom.cx, geom.cy-geom.r);
+                        ctx.lineTo(geom.cx, geom.cy+geom.r);
+                        ctx.strokeStyle = "#7799bb";
+                        ctx.lineWidth = 3;
+                        ctx.stroke();
+                        drawPoint(x1, y1, "#b87c48", "C");
+                        drawPoint(x2, y2, "#b87c48", "D");
+                    } 
+                },
+                { 
+                    id:3, name:"圆内接四边形定理", title:"CASE #04: 航海罗盘刻度", 
+                    desc:"🧭 拖拽四个顶点，使对角和为180°，填写答案", 
+                    theorem:"[圆内接四边形定理] 对角互补(和为180°)", 
+                    check:(state) => { return true; }, 
+                    getReadout:(state) => { 
+                        let pts = state.quadAngles.map(ang=>({x: state.cx+state.r*Math.cos(ang), y: state.cy+state.r*Math.sin(ang)}));
+                        let angles = [];
+                        for(let i=0;i<4;i++){
+                            let prev = pts[(i+3)%4], curr = pts[i], next = pts[(i+1)%4];
+                            let ang = computeAngle(prev.x, prev.y, curr.x, curr.y, next.x, next.y);
+                            angles.push(Math.round(ang*180/Math.PI));
+                        }
+                        return `∠A=${angles[0]}° ∠B=${angles[1]}° ∠C=${angles[2]}° ∠D=${angles[3]}° | A+C=${angles[0]+angles[2]}°`; 
+                    }, 
+                    drawCustom: () => { 
+                        let pts = geom.quadAngles.map(ang=>({x: geom.cx+geom.r*Math.cos(ang), y: geom.cy+geom.r*Math.sin(ang)}));
+                        ctx.beginPath();
+                        ctx.moveTo(pts[0].x, pts[0].y);
+                        for(let i=1;i<pts.length;i++) ctx.lineTo(pts[i].x, pts[i].y);
+                        ctx.closePath();
+                        ctx.strokeStyle = "#c9aa6e";
+                        ctx.lineWidth = 2.5;
+                        ctx.stroke();
+                        for(let i=0;i<pts.length;i++) drawPoint(pts[i].x, pts[i].y, "#ddae6e", String.fromCharCode(65+i));
+                    } 
+                },
+                { 
+                    id:4, name:"切线长定理", title:"CASE #05: 漏水检测仪", 
+                    desc:"💧 拖拽P和P'沿虚线轨道滑动，使两点在交点重合，观察PA和P'B长度相等", 
+                    theorem:"[切线长定理] 从圆外一点引圆的两条切线，切线长相等", 
+                    check:(state) => { 
+                        let pPoint = getPPoint(), qPoint = getQPoint();
+                        let ax = state.cx + state.r * Math.cos(state.fixedA), ay = state.cy + state.r * Math.sin(state.fixedA);
+                        let bx = state.cx + state.r * Math.cos(state.fixedB), by = state.cy + state.r * Math.sin(state.fixedB);
+                        let lenAP = Math.hypot(pPoint.x - ax, pPoint.y - ay);
+                        let lenBQ = Math.hypot(qPoint.x - bx, qPoint.y - by);
+                        let intersection = getTangentIntersection();
+                        if(!intersection) return false;
+                        let distToIntersectionP = Math.hypot(pPoint.x - intersection.x, pPoint.y - intersection.y);
+                        let distToIntersectionQ = Math.hypot(qPoint.x - intersection.x, qPoint.y - intersection.y);
+                        let bothAtIntersection = distToIntersectionP < 12 && distToIntersectionQ < 12;
+                        return bothAtIntersection && Math.abs(lenAP - lenBQ) < 3;
+                    }, 
+                    getReadout:(state) => { 
+                        let pPoint=getPPoint(), qPoint=getQPoint();
+                        let ax = state.cx+state.r*Math.cos(state.fixedA), ay=state.cy+state.r*Math.sin(state.fixedA);
+                        let bx=state.cx+state.r*Math.cos(state.fixedB), by=state.cy+state.r*Math.sin(state.fixedB);
+                        let lenAP = Math.hypot(pPoint.x-ax, pPoint.y-ay);
+                        let lenBQ = Math.hypot(qPoint.x-bx, qPoint.y-by);
+                        let intersection = getTangentIntersection();
+                        if(intersection){
+                            let dP=Math.hypot(pPoint.x-intersection.x, pPoint.y-intersection.y);
+                            let dQ=Math.hypot(qPoint.x-intersection.x, qPoint.y-intersection.y);
+                            return `PA = ${Math.round(lenAP)} | P'B = ${Math.round(lenBQ)} | 到交点: P=${Math.round(dP)} P'=${Math.round(dQ)}`;
+                        }
+                        return `PA = ${Math.round(lenAP)} | P'B = ${Math.round(lenBQ)}`; 
+                    }, 
+                    drawCustom: () => { 
+                        let ax = geom.cx+geom.r*Math.cos(geom.fixedA), ay=geom.cy+geom.r*Math.sin(geom.fixedA);
+                        let bx=geom.cx+geom.r*Math.cos(geom.fixedB), by=geom.cy+geom.r*Math.sin(geom.fixedB);
+                        let tangentA=getTangentA(), tangentB=getTangentB(), intersection=getTangentIntersection();
+                        let pPoint=getPPoint(), qPoint=getQPoint();
+                        ctx.setLineDash([8,8]);
+                        let ext=500;
+                        let sA=getPointOnTangent(-ext, tangentA), eA=getPointOnTangent(ext, tangentA);
+                        ctx.beginPath();
+                        ctx.moveTo(sA.x,sA.y);
+                        ctx.lineTo(eA.x,eA.y);
+                        ctx.strokeStyle="#b89a6e";
+                        ctx.stroke();
+                        let sB=getPointOnTangent(-ext, tangentB), eB=getPointOnTangent(ext, tangentB);
+                        ctx.beginPath();
+                        ctx.moveTo(sB.x,sB.y);
+                        ctx.lineTo(eB.x,eB.y);
+                        ctx.stroke();
+                        ctx.setLineDash([]);
+                        drawPoint(ax,ay,"#7f9fc0","A");
+                        drawPoint(bx,by,"#7f9fc0","B");
+                        if(intersection){
+                            ctx.fillStyle="#e9cf9b";
+                            ctx.beginPath();
+                            ctx.arc(intersection.x,intersection.y,8,0,2*Math.PI);
+                            ctx.fill();
+                        }
+                        ctx.beginPath();
+                        ctx.moveTo(pPoint.x,pPoint.y);
+                        ctx.lineTo(ax,ay);
+                        ctx.strokeStyle="#d98f44";
+                        ctx.lineWidth=2.5;
+                        ctx.stroke();
+                        ctx.beginPath();
+                        ctx.moveTo(qPoint.x,qPoint.y);
+                        ctx.lineTo(bx,by);
+                        ctx.strokeStyle="#6f9e6f";
+                        ctx.stroke();
+                        drawPoint(pPoint.x,pPoint.y,"#d98f44","P");
+                        drawPoint(qPoint.x,qPoint.y,"#6f9e6f","P'");
+                    } 
+                }
+            ];
+            
+            function getCurrentState() { return geom; }
+            
+            function verifyAndUpdate() {
+                let caseData = CASES[currentCaseIdx];
+                let state = getCurrentState();
+                let success = false;
+                if(currentCaseIdx === 0 || currentCaseIdx === 2 || currentCaseIdx === 4) success = caseData.check(state);
+                else if(currentCaseIdx === 1 || currentCaseIdx === 3) success = conditionMet;
+                let readoutSpan = document.getElementById('liveReadout');
+                if(readoutSpan) readoutSpan.innerHTML = `📐 ${caseData.getReadout(state)}`;
+                let clueDiv = document.getElementById('clueText');
+                let mistakeDiv = document.getElementById('mistakeTip');
+                let statusDiv = document.getElementById('statusMsg');
+                let stageDiv = document.querySelector('.canvas-stage');
+                if(success && !solvedBadges[currentCaseIdx]) {
+                    // 条件首次满足时播放成功音效
+                    if(!conditionMet) {
+                        playSound('success', 0.5);
+                    }
+                    clueDiv.innerHTML = `✨ 线索解锁 ✨<br>${caseData.theorem}<br>条件满足！`;
+                    mistakeDiv.innerHTML = `[正确] 定理条件成立！可结案。`;
+                    statusDiv.innerHTML = `条件满足！点击「结案陈词」完成推理。`;
+                    if(!conditionMet){ stageDiv.classList.add('correct-flash'); setTimeout(()=>stageDiv.classList.remove('correct-flash'),300); }
+                    conditionMet = true;
+                } else if(success && solvedBadges[currentCaseIdx]) {
+                    clueDiv.innerHTML = `${caseData.theorem}<br>已破案，继续下一案件吧`;
+                    mistakeDiv.innerHTML = `[已破案] 此案已完成`;
+                } else if(currentCaseIdx !== 1 && currentCaseIdx !== 3) {
+                    clueDiv.innerHTML = `${caseData.theorem}<br>条件未满足`;
+                    let hintMsg = (caseData.id===0?"使两个扇形角度相等（显示的角度相等）":(caseData.id===2?"使弦垂直于直径":(caseData.id===4?"将P和P'都拖到交点处":"调整图形")));
+                    mistakeDiv.innerHTML = `[未满足] ${hintMsg}`;
+                    // 条件不满足且之前满足过，播放错误音效
+                    if(conditionMet) {
+                        playSound('error', 0.4);
+                    }
+                    if(conditionMet){ stageDiv.classList.add('wrong-shake'); setTimeout(()=>stageDiv.classList.remove('wrong-shake'),300); }
+                    conditionMet = false;
+                }
+                drawCanvas();
+            }
+            
+            function drawCanvas() {
+                ctx.clearRect(0,0,w,h);
+                ctx.fillStyle="#fff9ef"; ctx.fillRect(0,0,w,h);
+                ctx.strokeStyle="#e2d8c4"; ctx.lineWidth=0.8;
+                for(let i=0;i<w;i+=30){ ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i,h); ctx.stroke(); }
+                for(let i=0;i<h;i+=30){ ctx.beginPath(); ctx.moveTo(0,i); ctx.lineTo(w,i); ctx.stroke(); }
+                ctx.beginPath(); ctx.arc(geom.cx, geom.cy, geom.r, 0, 2*Math.PI);
+                ctx.strokeStyle="#cbbf9f"; ctx.lineWidth=2.2; ctx.stroke();
+                ctx.fillStyle="#fff7eacc"; ctx.fill();
+                CASES[currentCaseIdx].drawCustom();
+                ctx.fillStyle="#c68f44"; ctx.fillRect(geom.cx-2, geom.cy-2,4,4);
+                ctx.fillStyle="#8b6946"; ctx.fillText("O", geom.cx+5, geom.cy+5);
+            }
+            
+            function getMouseCoord(e){
+                let rect = canvas.getBoundingClientRect();
+                let sx = canvas.width/rect.width, sy = canvas.height/rect.height;
+                return { mx: (e.clientX - rect.left)*sx, my: (e.clientY - rect.top)*sy };
+            }
+            
+            function onMouseDown(e){
+                let {mx,my}=getMouseCoord(e); let thresh=20;
+                if(currentCaseIdx===0){
+                    let aP={x:geom.cx+geom.r*Math.cos(geom.angA),y:geom.cy+geom.r*Math.sin(geom.angA)};
+                    let bP={x:geom.cx+geom.r*Math.cos(geom.angB),y:geom.cy+geom.r*Math.sin(geom.angB)};
+                    let cP={x:geom.cx+geom.r*Math.cos(geom.angC),y:geom.cy+geom.r*Math.sin(geom.angC)};
+                    let dP={x:geom.cx+geom.r*Math.cos(geom.angD),y:geom.cy+geom.r*Math.sin(geom.angD)};
+                    if(Math.hypot(mx-aP.x, my-aP.y)<thresh) {
+                        dragTarget="angA";
+                        playSound('drag', 0.3);
+                    }
+                    else if(Math.hypot(mx-bP.x, my-bP.y)<thresh) {
+                        dragTarget="angB";
+                        playSound('drag', 0.3);
+                    }
+                    else if(Math.hypot(mx-cP.x, my-cP.y)<thresh) {
+                        dragTarget="angC";
+                        playSound('drag', 0.3);
+                    }
+                    else if(Math.hypot(mx-dP.x, my-dP.y)<thresh) {
+                        dragTarget="angD";
+                        playSound('drag', 0.3);
+                    }
+                } else if(currentCaseIdx===1){
+                    let pp={x:geom.cx+geom.r*Math.cos(geom.soldierP),y:geom.cy+geom.r*Math.sin(geom.soldierP)};
+                    if(Math.hypot(mx-pp.x, my-pp.y)<thresh) {
+                        dragTarget="soldier";
+                        playSound('drag', 0.3);
+                    }
+                } else if(currentCaseIdx===2){
+                    let c1={x:geom.cx+geom.r*Math.cos(geom.chord1),y:geom.cy+geom.r*Math.sin(geom.chord1)};
+                    let c2={x:geom.cx+geom.r*Math.cos(geom.chord2),y:geom.cy+geom.r*Math.sin(geom.chord2)};
+                    if(Math.hypot(mx-c1.x, my-c1.y)<thresh) {
+                        dragTarget="chord1";
+                        playSound('drag', 0.3);
+                    }
+                    else if(Math.hypot(mx-c2.x, my-c2.y)<thresh) {
+                        dragTarget="chord2";
+                        playSound('drag', 0.3);
+                    }
+                } else if(currentCaseIdx===3){
+                    let pts=geom.quadAngles.map(ang=>({x:geom.cx+geom.r*Math.cos(ang),y:geom.cy+geom.r*Math.sin(ang)}));
+                    for(let i=0;i<pts.length;i++) {
+                        if(Math.hypot(mx-pts[i].x, my-pts[i].y)<thresh){ 
+                            dragTarget="quadVertex"; 
+                            dragQuadIdx=i;
+                            playSound('drag', 0.3);
+                            break; 
+                        }
+                    }
+                } else if(currentCaseIdx===4){
+                    let pPoint=getPPoint(), qPoint=getQPoint();
+                    if(Math.hypot(mx-pPoint.x, my-pPoint.y)<22) {
+                        dragTarget="paramP";
+                        playSound('drag', 0.3);
+                    }
+                    else if(Math.hypot(mx-qPoint.x, my-qPoint.y)<22) {
+                        dragTarget="paramQ";
+                        playSound('drag', 0.3);
+                    }
+                }
+            }
+            
+            function onMouseMove(e){
+                if(!dragTarget) return;
+                let {mx,my}=getMouseCoord(e);
+                if(currentCaseIdx===0){
+                    let ang=Math.atan2(my-geom.cy, mx-geom.cx);
+                    if(dragTarget==="angA") geom.angA=ang;
+                    else if(dragTarget==="angB") geom.angB=ang;
+                    else if(dragTarget==="angC") geom.angC=ang;
+                    else if(dragTarget==="angD") geom.angD=ang;
+                } else if(currentCaseIdx===1 && dragTarget==="soldier"){
+                    geom.soldierP=Math.atan2(my-geom.cy, mx-geom.cx);
+                } else if(currentCaseIdx===2){
+                    let ang=Math.atan2(my-geom.cy, mx-geom.cx);
+                    if(dragTarget==="chord1") geom.chord1=ang;
+                    else if(dragTarget==="chord2") geom.chord2=ang;
+                } else if(currentCaseIdx===3 && dragTarget==="quadVertex" && dragQuadIdx>=0){
+                    geom.quadAngles[dragQuadIdx]=Math.atan2(my-geom.cy, mx-geom.cx);
+                } else if(currentCaseIdx===4){
+                    let tangentA=getTangentA(), tangentB=getTangentB();
+                    if(dragTarget==="paramP"){
+                        let dx=mx-tangentA.px, dy=my-tangentA.py;
+                        geom.paramP = Math.min(400, Math.max(-400, dx*tangentA.dirX+dy*tangentA.dirY));
+                    } else if(dragTarget==="paramQ"){
+                        let dx=mx-tangentB.px, dy=my-tangentB.py;
+                        geom.paramQ = Math.min(400, Math.max(-400, dx*tangentB.dirX+dy*tangentB.dirY));
+                    }
+                }
+                verifyAndUpdate();
+            }
+            
+            function onMouseUp(){ 
+                dragTarget=null; 
+                dragQuadIdx=-1; 
+            }
+            
+            function resetCase(){
+                if(currentCaseIdx===0){ geom.angA=0.7; geom.angB=2.0; geom.angC=2.5; geom.angD=3.8; conditionMet=false; }
+                else if(currentCaseIdx===1){ geom.soldierP=3.2; conditionMet=false; }
+                else if(currentCaseIdx===2){ geom.chord1=1.0; geom.chord2=2.2; conditionMet=false; }
+                else if(currentCaseIdx===3){ geom.quadAngles=[0.5,1.8,2.7,4.0]; conditionMet=false; }
+                else if(currentCaseIdx===4){ 
+                    let inter=getTangentIntersection(); 
+                    if(inter){ 
+                        let ta=getTangentA(), tb=getTangentB(); 
+                        let ipA=(inter.x-ta.px)*ta.dirX+(inter.y-ta.py)*ta.dirY; 
+                        let ipB=(inter.x-tb.px)*tb.dirX+(inter.y-tb.py)*tb.dirY; 
+                        geom.paramP=ipA+10; geom.paramQ=ipB-15; 
+                    } else { geom.paramP=10; geom.paramQ=-15; } 
+                    conditionMet=false; 
+                }
+                verifyAndUpdate(); 
+                renderInteractiveInput();
+            }
+            
+            function renderInteractiveInput(){
+                let container=document.getElementById('interactiveInput');
+                if(currentCaseIdx===1){
+                    container.innerHTML=`<span>∠APB = (</span><input type="text" id="relationInput" placeholder="?"><span>) ∠AOB</span><button id="submitRelation">验证</button>`;
+                    document.getElementById('submitRelation')?.addEventListener('click',()=>{ 
+                        let val=document.getElementById('relationInput').value.trim(); 
+                        let isCorrect=val==="1/2"||val==="0.5"||val==="½"||parseFloat(val)===0.5; 
+                        if(isCorrect && !solvedBadges[1]){ 
+                            conditionMet=true; solvedBadges[1]=true; 
+                            playSound('success', 0.5);
+                            document.getElementById('clueText').innerHTML=`✨ 线索解锁 ✨<br>${CASES[1].theorem}<br>∠APB = 1/2 ∠AOB`; 
+                            document.getElementById('mistakeTip').innerHTML=`[正确] 关系式正确！`; 
+                            document.getElementById('statusMsg').innerHTML=`定理验证成功！点击结案。`; 
+                            document.getElementById('successMsg').style.display="block"; 
+                            updateBadges(); 
+                        } else if(isCorrect){ 
+                            document.getElementById('mistakeTip').innerHTML=`[正确] 但此案已破。`; 
+                        } else { 
+                            playSound('error', 0.4);
+                            document.getElementById('mistakeTip').innerHTML=`[错误] ∠APB = ? × ∠AOB，再观察角度数值！`; 
+                        } 
+                        verifyAndUpdate(); 
+                    });
+                } else if(currentCaseIdx===3){
+                    container.innerHTML=`<span>∠A+∠C = ∠B+∠D = </span><input type="text" id="sumInput" placeholder="度数"><span> °</span><button id="submitSum">验证</button>`;
+                    document.getElementById('submitSum')?.addEventListener('click',()=>{ 
+                        let val=parseInt(document.getElementById('sumInput').value); 
+                        if(val===180 && !solvedBadges[3]){ 
+                            conditionMet=true; solvedBadges[3]=true; 
+                            playSound('success', 0.5);
+                            document.getElementById('clueText').innerHTML=`✨ 线索解锁 ✨<br>${CASES[3].theorem}<br>对角和为180°`; 
+                            document.getElementById('mistakeTip').innerHTML=`[正确] 对角和180°！`; 
+                            document.getElementById('statusMsg').innerHTML=`定理验证成功！点击结案。`; 
+                            document.getElementById('successMsg').style.display="block"; 
+                            updateBadges(); 
+                        } else if(val===180){ 
+                            document.getElementById('mistakeTip').innerHTML=`[正确] 但此案已破。`; 
+                        } else { 
+                            playSound('error', 0.4);
+                            document.getElementById('mistakeTip').innerHTML=`[错误] 对角和应该是180°！`; 
+                        } 
+                        verifyAndUpdate(); 
+                    });
+                } else { 
+                    container.innerHTML=`<div style="color:#b28b54;">✨ 拖拽圆上的点，满足定理条件后点击「结案陈词」✨</div>`; 
+                }
+            }
+            
+            function nextCase(){ 
+                playSound('pageFlip', 0.4);
+                currentCaseIdx=(currentCaseIdx+1)%5; 
+                document.getElementById('caseBrief').innerHTML=`<h2>${CASES[currentCaseIdx].title}</h2><p>${CASES[currentCaseIdx].desc}</p>`; 
+                resetCase(); 
+                updateBadges(); 
+                renderInteractiveInput(); 
+                document.getElementById('successMsg').style.display="none"; 
+                document.getElementById('caseCounter').innerHTML=`案件 ${currentCaseIdx+1} / 5 · ${CASES[currentCaseIdx].name}`; 
+            }
+            
+            function prevCase(){ 
+                playSound('pageFlip', 0.4);
+                currentCaseIdx=(currentCaseIdx-1+5)%5; 
+                document.getElementById('caseBrief').innerHTML=`<h2>${CASES[currentCaseIdx].title}</h2><p>${CASES[currentCaseIdx].desc}</p>`; 
+                resetCase(); 
+                updateBadges(); 
+                renderInteractiveInput(); 
+                document.getElementById('successMsg').style.display="none"; 
+                document.getElementById('caseCounter').innerHTML=`案件 ${currentCaseIdx+1} / 5 · ${CASES[currentCaseIdx].name}`; 
+            }
+            
+            function proveCase(){ 
+                if(conditionMet && !solvedBadges[currentCaseIdx]){ 
+                    solvedBadges[currentCaseIdx]=true; 
+                    updateBadges(); 
+                    playSound('success', 0.6);
+                    document.getElementById('statusMsg').innerHTML="🏆 像素侦探徽章GET！案件完美落幕！"; 
+                    document.getElementById('successMsg').style.display="block"; 
+                } else if(conditionMet && solvedBadges[currentCaseIdx]){ 
+                    document.getElementById('statusMsg').innerHTML="🎉 已破获此案，继续挑战新案件吧！"; 
+                } else { 
+                    playSound('error', 0.4);
+                    document.getElementById('statusMsg').innerHTML="⚠️ 尚未满足定理条件，请先构造正确图形再结案。"; 
+                } 
+            }
+            
+            function updateBadges(){ 
+                let container=document.getElementById('badgeContainer'); 
+                container.innerHTML=CASES.map((c,i)=>`<div class="medal ${solvedBadges[i]?'active':''}">${c.name.slice(0,4)}</div>`).join(''); 
+            }
+            
+            canvas.addEventListener('mousedown', onMouseDown); 
+            window.addEventListener('mousemove', onMouseMove); 
+            window.addEventListener('mouseup', onMouseUp);
+            document.getElementById('resetBtn').addEventListener('click', resetCase);
+            document.getElementById('nextCaseBtn').addEventListener('click', nextCase);
+            document.getElementById('prevCaseBtn').addEventListener('click', prevCase);
+            document.getElementById('proveBtn').addEventListener('click', proveCase);
+            
+            updateBadges(); 
+            renderInteractiveInput(); 
+            verifyAndUpdate();
+        })();
+    </script>
+</body>
+</html>
