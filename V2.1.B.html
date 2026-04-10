@@ -265,29 +265,19 @@
 
     <script>
         (function(){
-            // ========== 修复1：新增正向角度计算函数 ==========
-            // 计算从 startAng 到 endAng 的正向角度（0-360°），沿着圆弧方向
-            function getForwardAngleDegrees(startAng, endAng) {
-                let startDeg = startAng * 180 / Math.PI;
-                let endDeg = endAng * 180 / Math.PI;
-                
-                // 计算正向差值（从start到end逆时针方向）
-                let diff = endDeg - startDeg;
-                if (diff < 0) diff += 360;
-                
-                return Math.round(diff);
-            }
-            
-            // 计算劣弧圆心角（用于条件判断，保持原逻辑不变）
+            // ========== 角度计算函数（统一使用劣弧角 0-180°）==========
+            // 计算劣弧圆心角（弧度），范围 0 ~ π
             function getMinorArcAngleRad(a, b) {
                 let diff = Math.abs(a - b);
                 return Math.min(diff, 2 * Math.PI - diff);
             }
             
+            // 计算劣弧圆心角（度数），范围 0 ~ 180
             function getMinorArcAngleDegrees(a, b) {
                 return Math.round(getMinorArcAngleRad(a, b) * 180 / Math.PI);
             }
             
+            // 通用角度计算函数（用于其他案件）
             function computeAngle(ax, ay, bx, by, cx, cy) {
                 let baX = ax - bx, baY = ay - by;
                 let bcX = cx - bx, bcY = cy - by;
@@ -297,25 +287,24 @@
                 return Math.acos(Math.min(1, Math.max(-1, dot/mag)));
             }
             
+            // 绘制扇区（始终绘制劣弧，与显示角度保持一致）
             function drawSector(cx, cy, r, startAng, endAng, color) {
-                // 修复2：确保扇区绘制使用正向角度（逆时针方向）
                 let start = startAng;
                 let end = endAng;
                 
-                // 计算正向差值
+                // 计算劣弧的起始和结束角度（确保绘制的是小弧）
                 let diff = end - start;
-                if (diff < 0) diff += 2 * Math.PI;
+                // 归一化差值到 [-π, π]
+                while (diff > Math.PI) diff -= 2 * Math.PI;
+                while (diff < -Math.PI) diff += 2 * Math.PI;
                 
-                // 如果差值大于π，绘制优弧时改用补集
-                if (diff > Math.PI) {
-                    // 绘制优弧扇区时，反向绘制
-                    ctx.beginPath();
-                    ctx.moveTo(cx, cy);
-                    ctx.arc(cx, cy, r, end, start);
-                    ctx.closePath();
-                    ctx.fillStyle = color;
-                    ctx.fill();
-                    return;
+                // 如果差值为负，说明end在start逆时针方向，需要交换
+                if (diff < 0) {
+                    // 绘制劣弧时，确保start到end是正向小弧
+                    let temp = start;
+                    start = end;
+                    end = temp;
+                    diff = -diff;
                 }
                 
                 ctx.beginPath();
@@ -390,16 +379,16 @@
                     id:0, name:"圆心角定理", title:"CASE #01: 剧院舞台灯错位", 
                     desc:"🎭 拖拽A/B/C/D点，使圆心角AOB = 圆心角COD", 
                     theorem:"[圆心角定理] 相等的圆心角所对的弧相等，所对的弦相等",
-                    // 修复3：条件判断使用劣弧角度（保持游戏逻辑不变）
+                    // 条件判断使用劣弧角度
                     check:(state) => { 
                         let aob = getMinorArcAngleRad(state.angA, state.angB);
                         let cod = getMinorArcAngleRad(state.angC, state.angD);
                         return Math.abs(aob - cod) < 0.08;
                     },
-                    // 修复4：显示使用正向角度，与视觉扇区一致
+                    // 显示使用劣弧角度（0-180°），与视觉扇区完全一致
                     getReadout:(state) => { 
-                        let aob = getForwardAngleDegrees(state.angA, state.angB);
-                        let cod = getForwardAngleDegrees(state.angC, state.angD);
+                        let aob = getMinorArcAngleDegrees(state.angA, state.angB);
+                        let cod = getMinorArcAngleDegrees(state.angC, state.angD);
                         return `∠AOB = ${aob}°  |  ∠COD = ${cod}°`;
                     },
                     drawCustom: () => { 
@@ -619,7 +608,7 @@
                     mistakeDiv.innerHTML = `[已破案] 此案已完成`;
                 } else if(currentCaseIdx !== 1 && currentCaseIdx !== 3) {
                     clueDiv.innerHTML = `${caseData.theorem}<br>条件未满足`;
-                    let hintMsg = (caseData.id===0?"使两个扇形角度相等":(caseData.id===2?"使弦垂直于直径":(caseData.id===4?"将P和P'都拖到交点处":"调整图形")));
+                    let hintMsg = (caseData.id===0?"使两个扇形角度相等（显示的角度相等）":(caseData.id===2?"使弦垂直于直径":(caseData.id===4?"将P和P'都拖到交点处":"调整图形")));
                     mistakeDiv.innerHTML = `[未满足] ${hintMsg}`;
                     if(conditionMet){ stageDiv.classList.add('wrong-shake'); setTimeout(()=>stageDiv.classList.remove('wrong-shake'),300); }
                     conditionMet = false;
