@@ -400,7 +400,7 @@
             const CASES = [
                 { 
                     id:0, name:"圆心角定理", title:"CASE #01: 剧院舞台灯错位", 
-                    desc:"🎭 拖拽A/B/C/D点，使圆心角AOB = 圆心角COD", 
+                    desc:"🎭 长期荒废的剧院重新投入使用，老旧的舞台灯出现故障，手动拖拽A/B/C/D点，使不同颜色的舞台灯照亮等长度的环形观众席【圆心角AOB = 圆心角COD】", 
                     theorem:"[圆心角定理] 相等的圆心角所对的弧相等，所对的弦相等",
                     // 条件判断使用劣弧角度
                     check:(state) => { 
@@ -429,7 +429,7 @@
                 },
                 { 
                     id:1, name:"圆周角定理", title:"CASE #02: 瞭望塔探照灯", 
-                    desc:"🏰 拖拽锡兵P，观察∠APB和∠AOB的关系，填写正确答案", 
+                    desc:"🏰 侦探社收到一个城堡造型的八音盒，打开里面可能有重要线索，拖拽八音盒上的锡兵P，观察∠APB和∠AOB的关系，填写正确答案，解开密码锁", 
                     theorem:"[圆周角定理] 同弧所对圆周角是圆心角的一半", 
                     check:(state) => { return true; }, 
                     getReadout:(state) => { 
@@ -465,7 +465,7 @@
                 },
                 { 
                     id:2, name:"垂径定理", title:"CASE #03: 古桥石拱裂缝", 
-                    desc:"🌉 拖拽弦端点C/D，使桥柱(直径)垂直于弦CD", 
+                    desc:"🌉 调查案件时路遇桥面塌陷，想办法用一根横梁修复拱桥，拖拽弦端点C/D，使桥柱(直径)垂直于弦CD", 
                     theorem:"[垂径定理] 垂直于弦的直径平分这条弦", 
                     check:(state) => { 
                         let x1 = state.cx+state.r*Math.cos(state.chord1), y1 = state.cy+state.r*Math.sin(state.chord1);
@@ -506,7 +506,7 @@
                 },
                 { 
                     id:3, name:"圆内接四边形定理", title:"CASE #04: 航海罗盘刻度", 
-                    desc:"🧭 拖拽四个顶点，使对角和为180°，填写答案", 
+                    desc:"🧭 物证实验室的罗盘看起来很奇怪，观察四个顶点，和其四边形中对角度数的关系，将其记录在档案中", 
                     theorem:"[圆内接四边形定理] 对角互补(和为180°)", 
                     check:(state) => { return true; }, 
                     getReadout:(state) => { 
@@ -533,7 +533,7 @@
                 },
                 { 
                     id:4, name:"切线长定理", title:"CASE #05: 漏水检测仪", 
-                    desc:"💧 拖拽P和P'沿虚线轨道滑动，使两点在交点重合，观察PA和P'B长度相等", 
+                    desc:"💧案发现场被输水管漏水的洒水器破坏，初步推测漏水点在两水管交叉处，拖拽P和P'沿虚线轨道滑动，使两点在交点重合，找到漏水点修复水管，观察PA和P'B长度相等", 
                     theorem:"[切线长定理] 从圆外一点引圆的两条切线，切线长相等", 
                     check:(state) => { 
                         let pPoint = getPPoint(), qPoint = getQPoint();

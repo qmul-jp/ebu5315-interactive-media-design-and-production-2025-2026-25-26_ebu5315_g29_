@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>圆定理侦探社 | 像素风几何解谜 · 中英文语音版 | 劣弧角度修复</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            image-rendering: crisp-edges;
+            image-rendering: pixelated;
+        }
+        
+        .game-full-container {
+            background: #e8eef2;
+            padding: 20px 20px 30px;
+            width: 100%;
+        }
+        
+        .detective-container {
+            background: #fef9e8;
+            box-shadow: 0 0 0 4px #cbd5e0, 0 0 0 8px #e2e8f0, 0 8px 24px rgba(0,0,0,0.1);
+            padding: 1.2rem;
+            max-width: 1400px;
+            width: 100%;
+            margin: 0 auto;
+            border-radius: 0;
+        }
+        
+        .game-layout {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            justify-content: center;
+        }
+        
+        .canvas-stage {
+            flex: 3;
+            min-width: 500px;
+            background: #fef7e0;
+            border: 3px solid #b9c3d0;
+            box-shadow: inset 0 0 0 2px #f5f0e0, 4px 4px 0px 0px #d0d8e4;
+            padding: 0.5rem;
+            position: relative;
+            cursor: crosshair;
+        }
+        
+        canvas {
+            display: block;
+            width: 100%;
+            background: #fff9ef;
+            image-rendering: crisp-edges;
+            image-rendering: pixelated;
+            cursor: crosshair;
+            box-shadow: inset 0 0 0 1px #e2dcc0;
+        }
+        
+        .case-panel {
+            flex: 1.2;
+            min-width: 280px;
+            background: #fff6e8;
+            border: 3px solid #cbd5e0;
+            padding: 1rem;
+            box-shadow: inset 2px 2px 0px #fffef8, 4px 4px 0px #d0d8e4;
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+        }
+        
+        .lang-voice-bar {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            justify-content: space-between;
+            background: #fff3e0;
+            border: 1px solid #e2cfaa;
+            padding: 6px 10px;
+            border-radius: 40px;
+        }
+        .lang-btn {
+            background: #e9ddc7;
+            border: none;
+            font-family: monospace;
+            font-size: 0.6rem;
+            padding: 4px 12px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            color: #5e4a2c;
+            transition: 0.1s;
+        }
+        .lang-btn.active {
+            background: #dba643;
+            color: white;
+            box-shadow: inset 0 1px 2px #fff3cf, 0 2px 3px rgba(0,0,0,0.1);
+        }
+        .speak-icon-btn {
+            background: #f0e4d0;
+            border: none;
+            font-size: 0.7rem;
+            padding: 4px 10px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-family: monospace;
+            font-weight: bold;
+        }
+        
+        .brief {
+            background: #fffcf0;
+            border-left: 6px solid #e9b35f;
+            padding: 0.8rem;
+        }
+        .brief h2 { margin: 0 0 0.5rem; font-size: 0.85rem; color: #5c4b2c; }
+        .brief p { margin: 0; font-size: 0.65rem; color: #7a6848; }
+        
+        .status-area {
+            background: #fff4e4;
+            border: 2px solid #e0d5c0;
+            padding: 0.6rem;
+            font-size: 0.6rem;
+            color: #6b5a3e;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .clue-box {
+            background: #fffdf5;
+            border: 2px dashed #dac29c;
+            padding: 0.7rem;
+            min-height: 150px;
+        }
+        .clue-label {
+            font-weight: bold;
+            color: #b87c2e;
+            font-size: 0.55rem;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .clue-content {
+            font-size: 0.65rem;
+            color: #5a4a2e;
+            font-family: 'Courier New', monospace;
+            word-break: break-word;
+        }
+        .mistake-tip {
+            font-size:0.5rem; 
+            margin-top:6px; 
+            color:#b37b2e;
+        }
+        .angle-readout {
+            background: #f5edda;
+            padding: 6px 8px;
+            font-size: 0.55rem;
+            font-family: monospace;
+            color: #a76f2c;
+            margin-top: 8px;
+            text-align: center;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .input-group {
+            margin-top: 10px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .input-group input {
+            background: #fffcf0;
+            border: 1px solid #dccfae;
+            color: #6b4e24;
+            font-family: monospace;
+            font-size: 0.6rem;
+            padding: 6px 8px;
+            width: 70px;
+            text-align: center;
+        }
+        .success-badge {
+            background: #e9cf9b;
+            color: #5c421f;
+            padding: 4px 8px;
+            font-size: 0.5rem;
+            text-align: center;
+            margin-top: 8px;
+            display: none;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+        }
+        button {
+            background: #f0e4d0;
+            border: none;
+            padding: 0.6rem 0.8rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.55rem;
+            color: #5c4b2c;
+            cursor: pointer;
+            box-shadow: 0 3px 0 #cbbf9f;
+            transition: 0.05s linear;
+            text-transform: uppercase;
+        }
+        button:active { transform: translateY(2px); box-shadow: 0 1px 0 #cbbf9f; }
+        button.primary { background: #e5d5b8; }
+        button.warning { background: #e6cfaa; }
+        .badge-row { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; margin-top: 4px; }
+        .medal { background: #eae2d0; border: 1px solid #ccbc9c; padding: 4px 6px; font-size: 0.5rem; color: #7e6a48; }
+        .medal.active { background: #e9cf9b; color: #4a371a; border-color: #dba643; }
+        .case-counter { font-size: 0.5rem; color: #b8883a; text-align: center; margin-top: 4px; }
+        @keyframes pixelBlink { 0% { filter: drop-shadow(0 0 0px #ffdd99);} 50% { filter: drop-shadow(0 0 6px #ffbb66);} }
+        @keyframes shakeAnim { 0% { transform: translate(1px, 1px);} 25% { transform: translate(-1px, 0px);} }
+        .correct-flash { animation: pixelBlink 0.3s 2; }
+        .wrong-shake { animation: shakeAnim 0.15s 2; }
+        @media (max-width: 768px) { .canvas-stage { min-width: 280px; } }
+    </style>
+</head>
+<body>
+<div class="game-full-container">
+    <div class="detective-container">
+        <div class="game-layout">
+            <div class="canvas-stage">
+                <canvas id="geometryCanvas" width="720" height="540" style="width:100%; height:auto;"></canvas>
+                <div class="small-note" id="canvasNote" style="font-size:0.45rem; text-align:center; margin-top:5px;">🖱️ 拖拽彩色圆点 | 观察角度 | 完成定理推理</div>
+            </div>
+            <div class="case-panel">
+                <div class="lang-voice-bar">
+                    <div style="display:flex; gap:6px;">
+                        <button id="langZhBtn" class="lang-btn active">🇨🇳 中文</button>
+                        <button id="langEnBtn" class="lang-btn">🇬🇧 English</button>
+                    </div>
+                    <button id="speakCaseBtn" class="speak-icon-btn">🔊 朗读案件</button>
+                    <button id="speakClueBtn" class="speak-icon-btn">📜 朗读线索</button>
+                </div>
+
+                <div class="brief" id="caseBrief">
+                    <h2>CASE #01: 剧院舞台灯错位</h2>
+                    <p>拖拽A/B/C/D点，使圆心角AOB = 圆心角COD</p>
+                </div>
+                <div class="status-area" id="statusMsg">
+                    📋 侦探手册<br>拖拽圆上的彩色点，观察角度变化
+                </div>
+                <div class="clue-box">
+                    <div class="clue-label">
+                        <span id="clueLabelText">📜 定理线索手册</span>
+                        <button id="speakMeasurementBtn" style="background: none; font-size:0.55rem; padding:2px 6px; box-shadow: none;">🔊 读数据</button>
+                    </div>
+                    <div class="clue-content" id="clueText">当前案件对应的圆定理将在这里展示</div>
+                    <div id="mistakeTip" class="mistake-tip"></div>
+                    <div id="liveReadout" class="angle-readout">
+                        <span>📐 测量数据: --</span>
+                    </div>
+                    <div id="interactiveInput" class="input-group"></div>
+                    <div id="successMsg" class="success-badge">✨ 定理理解成功 ✨</div>
+                </div>
+                <div class="action-buttons">
+                    <button id="resetBtn" class="warning">🔄 重置案件</button>
+                    <button id="nextCaseBtn" class="primary">🔍 下一案件 →</button>
+                    <button id="prevCaseBtn" class="primary">← 上一案件</button>
+                    <button id="proveBtn" class="primary">🏆 结案陈词</button>
+                </div>
+                <div class="badge-row" id="badgeContainer"></div>
+                <div class="case-counter" id="caseCounter">案件 1 / 5 · 圆心角定理</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function(){
+        // ================== 完整多语言文本库 ==================
+        const LANG_TEXTS = {
+            zh: {
+                canvasNote: "🖱️ 拖拽彩色圆点 | 观察角度 | 完成定理推理",
+                clueLabel: "📜 定理线索手册",
+                measurementBtn: "🔊 读数据",
+                speakCaseBtn: "🔊 朗读案件",
+                speakClueBtn: "📜 朗读线索",
+                resetBtn: "🔄 重置案件",
+                nextBtn: "🔍 下一案件 →",
+                prevBtn: "← 上一案件",
+                proveBtn: "🏆 结案陈词",
+                caseTitles: [
+                    "CASE #01: 剧院舞台灯错位",
+                    "CASE #02: 瞭望塔探照灯",
+                    "CASE #03: 古桥石拱裂缝",
+                    "CASE #04: 航海罗盘刻度",
+                    "CASE #05: 漏水检测仪"
+                ],
+                caseDescs: [
+                    "🎭 拖拽A/B/C/D点，使圆心角AOB = 圆心角COD",
+                    "🏰 拖拽锡兵P，观察∠APB和∠AOB的关系，填写正确答案",
+                    "🌉 拖拽弦端点C/D，使桥柱(直径)垂直于弦CD",
+                    "🧭 观察四边形顶点，记录对角和并验证互补关系",
+                    "💧 拖拽P和P'沿虚线滑动，使两点在交点重合，PA = P'B"
+                ],
+                theoremNames: ["圆心角定理", "圆周角定理", "垂径定理", "圆内接四边形定理", "切线长定理"],
+                theorems: [
+                    "[圆心角定理] 相等的圆心角所对的弧相等，所对的弦相等",
+                    "[圆周角定理] 同弧所对圆周角是圆心角的一半",
+                    "[垂径定理] 垂直于弦的直径平分这条弦",
+                    "[圆内接四边形定理] 对角互补(和为180°)",
+                    "[切线长定理] 从圆外一点引圆的两条切线，切线长相等"
+                ],
+                statusDefault: "📋 侦探手册\n拖拽圆上的彩色点，观察角度变化",
+                conditionMetMsg: "✨ 线索解锁 ✨",
+                conditionNotMet: "❌ 条件未满足",
+                correctInputHint: "✓ 正确！",
+                wrongInputHint: "✗ 错误，再试试看",
+                proveSuccess: "🏆 像素侦探徽章GET！案件完美落幕！",
+                proveAlready: "🎉 已破获此案，继续挑战新案件吧！",
+                proveFail: "⚠️ 尚未满足定理条件，请先构造正确图形再结案。",
+                measurementReadoutPrefix: "当前测量数据：",
+                hintTexts: {
+                    0: "使两个扇形角度相等（显示的角度相等）",
+                    2: "使弦垂直于直径",
+                    4: "将P和P'都拖到交点处",
+                    default: "调整图形"
+                },
+                inputPlaceholder: "例如 1/2",
+                inputSumPlaceholder: "度数",
+                inputVerify: "验证",
+                inputHintGeneric: "✨ 拖拽圆上的点，满足定理条件后点击「结案陈词」✨",
+                relationQuestion: "∠APB = (  ) ∠AOB",
+                sumQuestion: "∠A+∠C = ∠B+∠D = (  ) °",
+                badgeShort: ["圆心角", "圆周角", "垂径", "内接四边", "切线长"]
+            },
+            en: {
+                canvasNote: "🖱️ Drag colored points | Observe angles | Prove theorems",
+                clueLabel: "📜 Theorem Clue Book",
+                measurementBtn: "🔊 Read Data",
+                speakCaseBtn: "🔊 Read Case",
+                speakClueBtn: "📜 Read Clue",
+                resetBtn: "🔄 Reset Case",
+                nextBtn: "🔍 Next Case →",
+                prevBtn: "← Previous Case",
+                proveBtn: "🏆 Close Case",
+                caseTitles: [
+                    "CASE #01: Stage Lights Mismatch",
+                    "CASE #02: Lookout Spotlight",
+                    "CASE #03: Ancient Stone Arch Crack",
+                    "CASE #04: Navigation Compass Scale",
+                    "CASE #05: Leak Detector"
+                ],
+                caseDescs: [
+                    "🎭 Drag A/B/C/D so that central angle AOB = central angle COD",
+                    "🏰 Drag soldier P, observe ∠APB vs ∠AOB, enter the correct relation",
+                    "🌉 Drag chord endpoints C/D so that diameter ⟂ chord CD",
+                    "🧭 Observe quadrilateral vertices, verify supplementary opposite angles",
+                    "💧 Drag P and P' along dashed lines to meet at intersection, make PA = P'B"
+                ],
+                theoremNames: ["Central Angle", "Inscribed Angle", "Perpendicular Chord", "Cyclic Quadrilateral", "Tangent Length"],
+                theorems: [
+                    "[Central Angle Theorem] Equal central angles subtend equal chords and arcs",
+                    "[Inscribed Angle Theorem] Inscribed angle equals half the central angle subtending same arc",
+                    "[Perpendicular Chord Theorem] A diameter perpendicular to a chord bisects the chord",
+                    "[Cyclic Quadrilateral Theorem] Opposite angles sum to 180°",
+                    "[Tangent Length Theorem] Two tangents from an external point have equal lengths"
+                ],
+                statusDefault: "📋 Detective Log\nDrag colored points, observe angles",
+                conditionMetMsg: "✨ Clue Unlocked ✨",
+                conditionNotMet: "❌ Condition not satisfied",
+                correctInputHint: "✓ Correct!",
+                wrongInputHint: "✗ Wrong, try again",
+                proveSuccess: "🏆 Pixel Detective Badge GET! Case closed!",
+                proveAlready: "🎉 Case already solved, try next!",
+                proveFail: "⚠️ Theorem condition not met, adjust the figure first.",
+                measurementReadoutPrefix: "Current measurement: ",
+                hintTexts: {
+                    0: "Make the two sector angles equal",
+                    2: "Make the chord perpendicular to the diameter",
+                    4: "Drag P and P' to the intersection point",
+                    default: "Adjust the figure"
+                },
+                inputPlaceholder: "e.g. 1/2",
+                inputSumPlaceholder: "degrees",
+                inputVerify: "Verify",
+                inputHintGeneric: "✨ Drag points, then click 'Close Case' when condition is met ✨",
+                relationQuestion: "∠APB = (  ) × ∠AOB",
+                sumQuestion: "∠A+∠C = ∠B+∠D = (  ) °",
+                badgeShort: ["Central", "Inscribed", "Chord", "Cyclic", "Tangent"]
+            }
+        };
+
+        let currentLang = "zh";
+        let speechSynth = window.speechSynthesis;
+        
+        // ========== 核心几何函数：劣弧角度（0-180°）统一处理 ==========
+        // 计算劣弧圆心角（弧度），范围 0 ~ π
+        function getMinorArcAngleRad(a, b) {
+            let diff = Math.abs(a - b);
+            return Math.min(diff, 2 * Math.PI - diff);
+        }
+        // 计算劣弧圆心角（度数），范围 0 ~ 180
+        function getMinorArcAngleDegrees(a, b) {
+            return Math.round(getMinorArcAngleRad(a, b) * 180 / Math.PI);
+        }
+        
+        // 通用三点夹角计算
+        function computeAngle(ax, ay, bx, by, cx, cy) {
+            let baX = ax - bx, baY = ay - by;
+            let bcX = cx - bx, bcY = cy - by;
+            let dot = baX*bcX + baY*bcY;
+            let mag = Math.hypot(baX, baY) * Math.hypot(bcX, bcY);
+            if(mag === 0) return 0;
+            return Math.acos(Math.min(1, Math.max(-1, dot/mag)));
+        }
+        
+        // 绘制扇区：始终绘制劣弧（小弧），与显示角度完全一致
+        function drawSector(cx, cy, r, startAng, endAng, color) {
+            let start = startAng;
+            let end = endAng;
+            let diff = end - start;
+            while (diff > Math.PI) diff -= 2 * Math.PI;
+            while (diff < -Math.PI) diff += 2 * Math.PI;
+            if (diff < 0) {
+                let temp = start;
+                start = end;
+                end = temp;
+                diff = -diff;
+            }
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.arc(cx, cy, r, start, end);
+            ctx.closePath();
+            ctx.fillStyle = color;
+            ctx.fill();
+        }
+        
+        function drawPoint(x, y, color, label) {
+            ctx.fillStyle = color;
+            ctx.fillRect(x-6, y-6, 12, 12);
+            if(label) {
+                ctx.fillStyle = "#5a4a2e";
+                ctx.font = "bold 11px 'Courier New'";
+                ctx.fillText(label, x-8, y-10);
+            }
+        }
+        
+        function getTangentLine(pointAngle, cx, cy, r) {
+            let px = cx + r * Math.cos(pointAngle);
+            let py = cy + r * Math.sin(pointAngle);
+            let dirX = -Math.sin(pointAngle);
+            let dirY = Math.cos(pointAngle);
+            return { px, py, dirX, dirY };
+        }
+        
+        function getLineIntersection(line1, line2) {
+            let x1 = line1.px, y1 = line1.py;
+            let x2 = line2.px, y2 = line2.py;
+            let dx1 = line1.dirX, dy1 = line1.dirY;
+            let dx2 = line2.dirX, dy2 = line2.dirY;
+            let det = dx1 * dy2 - dy1 * dx2;
+            if (Math.abs(det) < 0.001) return null;
+            let t1 = ((x2 - x1) * dy2 - (y2 - y1) * dx2) / det;
+            return { x: x1 + t1 * dx1, y: y1 + t1 * dy1, t: t1 };
+        }
+        
+        function getPointOnTangent(t, tangent) {
+            return { x: tangent.px + tangent.dirX * t, y: tangent.py + tangent.dirY * t };
+        }
+        
+        let canvas = document.getElementById('geometryCanvas');
+        let ctx = canvas.getContext('2d');
+        let w = 720, h = 540;
+        canvas.width = w; canvas.height = h;
+        
+        let geom = {
+            cx: w/2, cy: h/2 - 8, r: 170,
+            angA: 0.7, angB: 2.0, angC: 2.5, angD: 3.8,
+            fixedA: 0.8, fixedB: 2.5, soldierP: 3.2,
+            chord1: 1.0, chord2: 2.2,
+            quadAngles: [0.5, 1.8, 2.7, 4.0],
+            paramP: 10, paramQ: -15
+        };
+        
+        function getTangentA() { return getTangentLine(geom.fixedA, geom.cx, geom.cy, geom.r); }
+        function getTangentB() { return getTangentLine(geom.fixedB, geom.cx, geom.cy, geom.r); }
+        function getTangentIntersection() { return getLineIntersection(getTangentA(), getTangentB()); }
+        function getPPoint() { return getPointOnTangent(geom.paramP, getTangentA()); }
+        function getQPoint() { return getPointOnTangent(geom.paramQ, getTangentB()); }
+        
+        let currentCaseIdx = 0;
+        let solvedBadges = [false, false, false, false, false];
+        let conditionMet = false;
+        let dragTarget = null;
+        let dragQuadIdx = -1;
+        
+        const CASES = [
+            { 
+                id:0, name:"圆心角定理", 
+                check:(state) => { 
+                    let aob = getMinorArcAngleRad(state.angA, state.angB);
+                    let cod = getMinorArcAngleRad(state.angC, state.angD);
+                    return Math.abs(aob - cod) < 0.08;
+                },
+                // 关键修复：显示劣弧角度 0-180°，永远非负
+                getReadout:(state) => { 
+                    let aob = getMinorArcAngleDegrees(state.angA, state.angB);
+                    let cod = getMinorArcAngleDegrees(state.angC, state.angD);
+                    return `∠AOB = ${aob}°  |  ∠COD = ${cod}°`;
+                },
+                drawCustom: () => { 
+                    drawSector(geom.cx, geom.cy, geom.r, geom.angA, geom.angB, "rgba(210, 140, 90, 0.5)");
+                    drawSector(geom.cx, geom.cy, geom.r, geom.angC, geom.angD, "rgba(100, 150, 200, 0.5)");
+                    drawPoint(geom.cx+geom.r*Math.cos(geom.angA), geom.cy+geom.r*Math.sin(geom.angA), "#c97e3a", "A");
+                    drawPoint(geom.cx+geom.r*Math.cos(geom.angB), geom.cy+geom.r*Math.sin(geom.angB), "#c97e3a", "B");
+                    drawPoint(geom.cx+geom.r*Math.cos(geom.angC), geom.cy+geom.r*Math.sin(geom.angC), "#5f8ab3", "C");
+                    drawPoint(geom.cx+geom.r*Math.cos(geom.angD), geom.cy+geom.r*Math.sin(geom.angD), "#5f8ab3", "D");
+                    ctx.fillStyle = "#b87333";
+                    ctx.fillText("扇形AOB", geom.cx-70, geom.cy-45);
+                    ctx.fillStyle = "#4f7a9e";
+                    ctx.fillText("扇形COD", geom.cx+20, geom.cy-60);
+                } 
+            },
+            { 
+                id:1, name:"圆周角定理", 
+                check:(state) => { return true; }, 
+                getReadout:(state) => { 
+                    let centerAng = getMinorArcAngleRad(state.fixedA, state.fixedB);
+                    let ax = state.cx+state.r*Math.cos(state.fixedA);
+                    let ay = state.cy+state.r*Math.sin(state.fixedA);
+                    let bx = state.cx+state.r*Math.cos(state.fixedB);
+                    let by = state.cy+state.r*Math.sin(state.fixedB);
+                    let px = state.cx+state.r*Math.cos(state.soldierP);
+                    let py = state.cy+state.r*Math.sin(state.soldierP);
+                    let angleAPB = computeAngle(ax, ay, px, py, bx, by);
+                    return `∠AOB = ${Math.round(centerAng*180/Math.PI)}°  |  ∠APB = ${Math.round(angleAPB*180/Math.PI)}°`; 
+                }, 
+                drawCustom: () => { 
+                    let ax = geom.cx+geom.r*Math.cos(geom.fixedA);
+                    let ay = geom.cy+geom.r*Math.sin(geom.fixedA);
+                    let bx = geom.cx+geom.r*Math.cos(geom.fixedB);
+                    let by = geom.cy+geom.r*Math.sin(geom.fixedB);
+                    let px = geom.cx+geom.r*Math.cos(geom.soldierP);
+                    let py = geom.cy+geom.r*Math.sin(geom.soldierP);
+                    drawSector(geom.cx, geom.cy, geom.r, geom.fixedA, geom.fixedB, "rgba(220, 180, 80, 0.35)");
+                    ctx.beginPath();
+                    ctx.moveTo(ax, ay);
+                    ctx.lineTo(px, py);
+                    ctx.lineTo(bx, by);
+                    ctx.strokeStyle = "#c68b3e";
+                    ctx.lineWidth = 2.5;
+                    ctx.stroke();
+                    drawPoint(px, py, "#d9942e", "P");
+                    drawPoint(ax, ay, "#7a9bcb", "A");
+                    drawPoint(bx, by, "#d98c3a", "B");
+                } 
+            },
+            { 
+                id:2, name:"垂径定理", 
+                check:(state) => { 
+                    let x1 = state.cx+state.r*Math.cos(state.chord1), y1 = state.cy+state.r*Math.sin(state.chord1);
+                    let x2 = state.cx+state.r*Math.cos(state.chord2), y2 = state.cy+state.r*Math.sin(state.chord2);
+                    let chordX = x2-x1, chordY = y2-y1;
+                    let dot = chordX*0 + chordY*1;
+                    let len = Math.hypot(chordX, chordY);
+                    if(len < 0.1) return false;
+                    return Math.abs(dot) / len < 0.12;
+                }, 
+                getReadout:(state) => { 
+                    let x1 = state.cx+state.r*Math.cos(state.chord1), y1 = state.cy+state.r*Math.sin(state.chord1);
+                    let x2 = state.cx+state.r*Math.cos(state.chord2), y2 = state.cy+state.r*Math.sin(state.chord2);
+                    let chordX = x2-x1, chordY = y2-y1;
+                    let len = Math.hypot(chordX, chordY);
+                    let isPerp = len > 0.1 ? Math.abs(chordY) / len < 0.12 : false;
+                    return `垂直: ${isPerp ? "✓ 是" : "✗ 否"}`; 
+                }, 
+                drawCustom: () => { 
+                    let x1 = geom.cx+geom.r*Math.cos(geom.chord1), y1 = geom.cy+geom.r*Math.sin(geom.chord1);
+                    let x2 = geom.cx+geom.r*Math.cos(geom.chord2), y2 = geom.cy+geom.r*Math.sin(geom.chord2);
+                    ctx.beginPath();
+                    ctx.moveTo(x1, y1);
+                    ctx.lineTo(x2, y2);
+                    ctx.strokeStyle = "#b87c48";
+                    ctx.lineWidth = 4;
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.moveTo(geom.cx, geom.cy-geom.r);
+                    ctx.lineTo(geom.cx, geom.cy+geom.r);
+                    ctx.strokeStyle = "#7799bb";
+                    ctx.lineWidth = 3;
+                    ctx.stroke();
+                    drawPoint(x1, y1, "#b87c48", "C");
+                    drawPoint(x2, y2, "#b87c48", "D");
+                } 
+            },
+            { 
+                id:3, name:"圆内接四边形定理", 
+                check:(state) => { return true; }, 
+                getReadout:(state) => { 
+                    let pts = state.quadAngles.map(ang=>({x: state.cx+state.r*Math.cos(ang), y: state.cy+state.r*Math.sin(ang)}));
+                    let angles = [];
+                    for(let i=0;i<4;i++){
+                        let prev = pts[(i+3)%4], curr = pts[i], next = pts[(i+1)%4];
+                        let ang = computeAngle(prev.x, prev.y, curr.x, curr.y, next.x, next.y);
+                        angles.push(Math.round(ang*180/Math.PI));
+                    }
+                    return `∠A=${angles[0]}° ∠B=${angles[1]}° ∠C=${angles[2]}° ∠D=${angles[3]}° | A+C=${angles[0]+angles[2]}°`; 
+                }, 
+                drawCustom: () => { 
+                    let pts = geom.quadAngles.map(ang=>({x: geom.cx+geom.r*Math.cos(ang), y: geom.cy+geom.r*Math.sin(ang)}));
+                    ctx.beginPath();
+                    ctx.moveTo(pts[0].x, pts[0].y);
+                    for(let i=1;i<pts.length;i++) ctx.lineTo(pts[i].x, pts[i].y);
+                    ctx.closePath();
+                    ctx.strokeStyle = "#c9aa6e";
+                    ctx.lineWidth = 2.5;
+                    ctx.stroke();
+                    for(let i=0;i<pts.length;i++) drawPoint(pts[i].x, pts[i].y, "#ddae6e", String.fromCharCode(65+i));
+                } 
+            },
+            { 
+                id:4, name:"切线长定理", 
+                check:(state) => { 
+                    let pPoint = getPPoint(), qPoint = getQPoint();
+                    let ax = state.cx + state.r * Math.cos(state.fixedA), ay = state.cy + state.r * Math.sin(state.fixedA);
+                    let bx = state.cx + state.r * Math.cos(state.fixedB), by = state.cy + state.r * Math.sin(state.fixedB);
+                    let lenAP = Math.hypot(pPoint.x - ax, pPoint.y - ay);
+                    let lenBQ = Math.hypot(qPoint.x - bx, qPoint.y - by);
+                    let intersection = getTangentIntersection();
+                    if(!intersection) return false;
+                    let distToIntersectionP = Math.hypot(pPoint.x - intersection.x, pPoint.y - intersection.y);
+                    let distToIntersectionQ = Math.hypot(qPoint.x - intersection.x, qPoint.y - intersection.y);
+                    let bothAtIntersection = distToIntersectionP < 12 && distToIntersectionQ < 12;
+                    return bothAtIntersection && Math.abs(lenAP - lenBQ) < 3;
+                }, 
+                getReadout:(state) => { 
+                    let pPoint=getPPoint(), qPoint=getQPoint();
+                    let ax = state.cx+state.r*Math.cos(state.fixedA), ay=state.cy+state.r*Math.sin(state.fixedA);
+                    let bx=state.cx+state.r*Math.cos(state.fixedB), by=state.cy+state.r*Math.sin(state.fixedB);
+                    let lenAP = Math.hypot(pPoint.x-ax, pPoint.y-ay);
+                    let lenBQ = Math.hypot(qPoint.x-bx, qPoint.y-by);
+                    let intersection = getTangentIntersection();
+                    if(intersection){
+                        let dP=Math.hypot(pPoint.x-intersection.x, pPoint.y-intersection.y);
+                        let dQ=Math.hypot(qPoint.x-intersection.x, qPoint.y-intersection.y);
+                        return `PA = ${Math.round(lenAP)} | P'B = ${Math.round(lenBQ)} | 到交点: P=${Math.round(dP)} P'=${Math.round(dQ)}`;
+                    }
+                    return `PA = ${Math.round(lenAP)} | P'B = ${Math.round(lenBQ)}`; 
+                }, 
+                drawCustom: () => { 
+                    let ax = geom.cx+geom.r*Math.cos(geom.fixedA), ay=geom.cy+geom.r*Math.sin(geom.fixedA);
+                    let bx=geom.cx+geom.r*Math.cos(geom.fixedB), by=geom.cy+geom.r*Math.sin(geom.fixedB);
+                    let tangentA=getTangentA(), tangentB=getTangentB(), intersection=getTangentIntersection();
+                    let pPoint=getPPoint(), qPoint=getQPoint();
+                    ctx.setLineDash([8,8]);
+                    let ext=500;
+                    let sA=getPointOnTangent(-ext, tangentA), eA=getPointOnTangent(ext, tangentA);
+                    ctx.beginPath();
+                    ctx.moveTo(sA.x,sA.y);
+                    ctx.lineTo(eA.x,eA.y);
+                    ctx.strokeStyle="#b89a6e";
+                    ctx.stroke();
+                    let sB=getPointOnTangent(-ext, tangentB), eB=getPointOnTangent(ext, tangentB);
+                    ctx.beginPath();
+                    ctx.moveTo(sB.x,sB.y);
+                    ctx.lineTo(eB.x,eB.y);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                    drawPoint(ax,ay,"#7f9fc0","A");
+                    drawPoint(bx,by,"#7f9fc0","B");
+                    if(intersection){
+                        ctx.fillStyle="#e9cf9b";
+                        ctx.beginPath();
+                        ctx.arc(intersection.x,intersection.y,8,0,2*Math.PI);
+                        ctx.fill();
+                    }
+                    ctx.beginPath();
+                    ctx.moveTo(pPoint.x,pPoint.y);
+                    ctx.lineTo(ax,ay);
+                    ctx.strokeStyle="#d98f44";
+                    ctx.lineWidth=2.5;
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.moveTo(qPoint.x,qPoint.y);
+                    ctx.lineTo(bx,by);
+                    ctx.strokeStyle="#6f9e6f";
+                    ctx.stroke();
+                    drawPoint(pPoint.x,pPoint.y,"#d98f44","P");
+                    drawPoint(qPoint.x,qPoint.y,"#6f9e6f","P'");
+                } 
+            }
+        ];
+        
+        // 全局UI刷新（保留原有完整逻辑）
+        function refreshAllUITexts() {
+            const t = LANG_TEXTS[currentLang];
+            document.getElementById('canvasNote').innerText = t.canvasNote;
+            document.getElementById('clueLabelText').innerText = t.clueLabel;
+            document.getElementById('speakMeasurementBtn').innerHTML = t.measurementBtn;
+            document.getElementById('speakCaseBtn').innerHTML = t.speakCaseBtn;
+            document.getElementById('speakClueBtn').innerHTML = t.speakClueBtn;
+            document.getElementById('resetBtn').innerHTML = t.resetBtn;
+            document.getElementById('nextCaseBtn').innerHTML = t.nextBtn;
+            document.getElementById('prevCaseBtn').innerHTML = t.prevBtn;
+            document.getElementById('proveBtn').innerHTML = t.proveBtn;
+            updateCaseHeader();
+            updateStatusAndClue();
+            updateBadges();
+            renderInteractiveInput();
+        }
+        
+        function updateCaseHeader() {
+            const t = LANG_TEXTS[currentLang];
+            let title = t.caseTitles[currentCaseIdx];
+            let desc = t.caseDescs[currentCaseIdx];
+            document.getElementById('caseBrief').innerHTML = `<h2>${title}</h2><p>${desc}</p>`;
+            document.getElementById('caseCounter').innerHTML = `案件 ${currentCaseIdx+1} / 5 · ${t.theoremNames[currentCaseIdx]}`;
+        }
+        
+        function updateStatusAndClue() {
+            const t = LANG_TEXTS[currentLang];
+            let caseData = CASES[currentCaseIdx];
+            let state = geom;
+            let success = false;
+            if(currentCaseIdx===0||currentCaseIdx===2||currentCaseIdx===4) success = caseData.check(state);
+            else if(currentCaseIdx===1||currentCaseIdx===3) success = conditionMet;
+            let readoutText = caseData.getReadout(state);
+            document.getElementById('liveReadout').innerHTML = `<span>📐 ${readoutText}</span><button id="speakMeasurementBtnMini" style="background:none; font-size:0.5rem;">🔊</button>`;
+            let clueHtml = "";
+            if(success && !solvedBadges[currentCaseIdx]) {
+                clueHtml = `<span style="color:#b87c2e;">${t.conditionMetMsg}</span><br>${t.theorems[currentCaseIdx]}`;
+                document.getElementById('mistakeTip').innerHTML = `<span style="color:#5c9e3e;">✓ ${t.correctInputHint}</span>`;
+                document.getElementById('statusMsg').innerHTML = t.conditionMetMsg;
+                conditionMet = true;
+            } else if(success && solvedBadges[currentCaseIdx]) {
+                clueHtml = `${t.theorems[currentCaseIdx]}<br><span style="color:#aa8b5c;">${t.proveAlready}</span>`;
+                document.getElementById('mistakeTip').innerHTML = `<span style="color:#aa8b5c;">🔓 ${t.proveAlready}</span>`;
+                document.getElementById('statusMsg').innerHTML = t.proveAlready;
+            } else {
+                let hintKey = (currentCaseIdx===0?0:(currentCaseIdx===2?2:(currentCaseIdx===4?4:"default")));
+                let hintMsg = t.hintTexts[hintKey] || t.hintTexts.default;
+                clueHtml = `${t.theorems[currentCaseIdx]}<br><span style="color:#b37b2e;">${t.conditionNotMet}</span><br><span style="font-size:0.5rem;">💡 ${hintMsg}</span>`;
+                document.getElementById('mistakeTip').innerHTML = `❌ ${hintMsg}`;
+                document.getElementById('statusMsg').innerHTML = t.statusDefault;
+                conditionMet = false;
+            }
+            document.getElementById('clueText').innerHTML = clueHtml;
+            drawCanvas();
+        }
+        
+        function renderInteractiveInput() {
+            let container = document.getElementById('interactiveInput');
+            const t = LANG_TEXTS[currentLang];
+            if(currentCaseIdx===1){
+                container.innerHTML = `<span>${t.relationQuestion}</span><input type="text" id="relationInput" placeholder="${t.inputPlaceholder}"><button id="submitRelation">${t.inputVerify}</button>`;
+                document.getElementById('submitRelation')?.addEventListener('click',()=>{ 
+                    let val=document.getElementById('relationInput').value.trim(); 
+                    let isCorrect=val==="1/2"||val==="0.5"||val==="½"||parseFloat(val)===0.5; 
+                    if(isCorrect && !solvedBadges[1]){ 
+                        conditionMet=true; solvedBadges[1]=true; 
+                        updateStatusAndClue(); refreshAllUITexts();
+                    } else if(isCorrect){ document.getElementById('mistakeTip').innerHTML=`✓ ${t.correctInputHint}`; } 
+                    else { document.getElementById('mistakeTip').innerHTML=`✗ ${t.wrongInputHint}`; }
+                    updateStatusAndClue();
+                });
+            } else if(currentCaseIdx===3){
+                container.innerHTML = `<span>${t.sumQuestion}</span><input type="text" id="sumInput" placeholder="${t.inputSumPlaceholder}"><button id="submitSum">${t.inputVerify}</button>`;
+                document.getElementById('submitSum')?.addEventListener('click',()=>{ 
+                    let val=parseInt(document.getElementById('sumInput').value); 
+                    if(val===180 && !solvedBadges[3]){ conditionMet=true; solvedBadges[3]=true; updateStatusAndClue(); refreshAllUITexts(); } 
+                    else if(val===180){ document.getElementById('mistakeTip').innerHTML=`✓ ${t.correctInputHint}`; } 
+                    else { document.getElementById('mistakeTip').innerHTML=`✗ ${t.wrongInputHint}`; }
+                    updateStatusAndClue();
+                });
+            } else {
+                container.innerHTML = `<div style="color:#b28b54;">${t.inputHintGeneric}</div>`;
+            }
+        }
+        
+        function drawCanvas() {
+            ctx.clearRect(0,0,w,h);
+            ctx.fillStyle="#fff9ef"; ctx.fillRect(0,0,w,h);
+            ctx.strokeStyle="#e2d8c4"; ctx.lineWidth=0.8;
+            for(let i=0;i<w;i+=30){ ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i,h); ctx.stroke(); }
+            for(let i=0;i<h;i+=30){ ctx.beginPath(); ctx.moveTo(0,i); ctx.lineTo(w,i); ctx.stroke(); }
+            ctx.beginPath(); ctx.arc(geom.cx, geom.cy, geom.r, 0, 2*Math.PI);
+            ctx.strokeStyle="#cbbf9f"; ctx.lineWidth=2.2; ctx.stroke();
+            ctx.fillStyle="#fff7eacc"; ctx.fill();
+            CASES[currentCaseIdx].drawCustom();
+            ctx.fillStyle="#c68f44"; ctx.fillRect(geom.cx-2, geom.cy-2,4,4);
+            ctx.fillStyle="#8b6946"; ctx.fillText("O", geom.cx+5, geom.cy+5);
+        }
+        
+        function getMouseCoord(e){
+            let rect = canvas.getBoundingClientRect();
+            let sx = canvas.width/rect.width, sy = canvas.height/rect.height;
+            return { mx: (e.clientX - rect.left)*sx, my: (e.clientY - rect.top)*sy };
+        }
+        
+        function onMouseDown(e){
+            let {mx,my}=getMouseCoord(e); let thresh=20;
+            if(currentCaseIdx===0){
+                let aP={x:geom.cx+geom.r*Math.cos(geom.angA),y:geom.cy+geom.r*Math.sin(geom.angA)};
+                let bP={x:geom.cx+geom.r*Math.cos(geom.angB),y:geom.cy+geom.r*Math.sin(geom.angB)};
+                let cP={x:geom.cx+geom.r*Math.cos(geom.angC),y:geom.cy+geom.r*Math.sin(geom.angC)};
+                let dP={x:geom.cx+geom.r*Math.cos(geom.angD),y:geom.cy+geom.r*Math.sin(geom.angD)};
+                if(Math.hypot(mx-aP.x, my-aP.y)<thresh) dragTarget="angA";
+                else if(Math.hypot(mx-bP.x, my-bP.y)<thresh) dragTarget="angB";
+                else if(Math.hypot(mx-cP.x, my-cP.y)<thresh) dragTarget="angC";
+                else if(Math.hypot(mx-dP.x, my-dP.y)<thresh) dragTarget="angD";
+            } else if(currentCaseIdx===1){
+                let pp={x:geom.cx+geom.r*Math.cos(geom.soldierP),y:geom.cy+geom.r*Math.sin(geom.soldierP)};
+                if(Math.hypot(mx-pp.x, my-pp.y)<thresh) dragTarget="soldier";
+            } else if(currentCaseIdx===2){
+                let c1={x:geom.cx+geom.r*Math.cos(geom.chord1),y:geom.cy+geom.r*Math.sin(geom.chord1)};
+                let c2={x:geom.cx+geom.r*Math.cos(geom.chord2),y:geom.cy+geom.r*Math.sin(geom.chord2)};
+                if(Math.hypot(mx-c1.x, my-c1.y)<thresh) dragTarget="chord1";
+                else if(Math.hypot(mx-c2.x, my-c2.y)<thresh) dragTarget="chord2";
+            } else if(currentCaseIdx===3){
+                let pts=geom.quadAngles.map(ang=>({x:geom.cx+geom.r*Math.cos(ang),y:geom.cy+geom.r*Math.sin(ang)}));
+                for(let i=0;i<pts.length;i++) if(Math.hypot(mx-pts[i].x, my-pts[i].y)<thresh){ dragTarget="quadVertex"; dragQuadIdx=i; break; }
+            } else if(currentCaseIdx===4){
+                let pPoint=getPPoint(), qPoint=getQPoint();
+                if(Math.hypot(mx-pPoint.x, my-pPoint.y)<22) dragTarget="paramP";
+                else if(Math.hypot(mx-qPoint.x, my-qPoint.y)<22) dragTarget="paramQ";
+            }
+        }
+        
+        function onMouseMove(e){
+            if(!dragTarget) return;
+            let {mx,my}=getMouseCoord(e);
+            let ang=Math.atan2(my-geom.cy, mx-geom.cx);
+            if(currentCaseIdx===0){
+                if(dragTarget==="angA") geom.angA=ang;
+                else if(dragTarget==="angB") geom.angB=ang;
+                else if(dragTarget==="angC") geom.angC=ang;
+                else if(dragTarget==="angD") geom.angD=ang;
+            } else if(currentCaseIdx===1 && dragTarget==="soldier") geom.soldierP=ang;
+            else if(currentCaseIdx===2){
+                if(dragTarget==="chord1") geom.chord1=ang;
+                else if(dragTarget==="chord2") geom.chord2=ang;
+            } else if(currentCaseIdx===3 && dragTarget==="quadVertex" && dragQuadIdx>=0) geom.quadAngles[dragQuadIdx]=ang;
+            else if(currentCaseIdx===4){
+                let ta=getTangentA(), tb=getTangentB();
+                if(dragTarget==="paramP"){ let dx=mx-ta.px, dy=my-ta.py; geom.paramP = Math.min(400, Math.max(-400, dx*ta.dirX+dy*ta.dirY)); }
+                else if(dragTarget==="paramQ"){ let dx=mx-tb.px, dy=my-tb.py; geom.paramQ = Math.min(400, Math.max(-400, dx*tb.dirX+dy*tb.dirY)); }
+            }
+            updateStatusAndClue();
+            drawCanvas();
+        }
+        
+        function onMouseUp(){ dragTarget=null; dragQuadIdx=-1; }
+        
+        function resetCase(){
+            if(currentCaseIdx===0){ geom.angA=0.7; geom.angB=2.0; geom.angC=2.5; geom.angD=3.8; conditionMet=false; }
+            else if(currentCaseIdx===1){ geom.soldierP=3.2; conditionMet=false; }
+            else if(currentCaseIdx===2){ geom.chord1=1.0; geom.chord2=2.2; conditionMet=false; }
+            else if(currentCaseIdx===3){ geom.quadAngles=[0.5,1.8,2.7,4.0]; conditionMet=false; }
+            else if(currentCaseIdx===4){ 
+                let inter=getTangentIntersection(); 
+                if(inter){ 
+                    let ta=getTangentA(), tb=getTangentB(); 
+                    let ipA=(inter.x-ta.px)*ta.dirX+(inter.y-ta.py)*ta.dirY; 
+                    let ipB=(inter.x-tb.px)*tb.dirX+(inter.y-tb.py)*tb.dirY; 
+                    geom.paramP=ipA+10; geom.paramQ=ipB-15; 
+                } else { geom.paramP=10; geom.paramQ=-15; } 
+                conditionMet=false; 
+            }
+            updateStatusAndClue();
+            drawCanvas();
+            renderInteractiveInput();
+        }
+        
+        function nextCase(){ currentCaseIdx=(currentCaseIdx+1)%5; resetCase(); updateCaseHeader(); updateStatusAndClue(); updateBadges(); refreshAllUITexts(); drawCanvas(); }
+        function prevCase(){ currentCaseIdx=(currentCaseIdx-1+5)%5; resetCase(); updateCaseHeader(); updateStatusAndClue(); updateBadges(); refreshAllUITexts(); drawCanvas(); }
+        
+        function proveCase(){
+            const t = LANG_TEXTS[currentLang];
+            if(conditionMet && !solvedBadges[currentCaseIdx]){ solvedBadges[currentCaseIdx]=true; updateBadges(); document.getElementById('statusMsg').innerHTML=t.proveSuccess; document.getElementById('successMsg').style.display="block"; speakText(t.proveSuccess, currentLang); }
+            else if(conditionMet && solvedBadges[currentCaseIdx]){ document.getElementById('statusMsg').innerHTML=t.proveAlready; speakText(t.proveAlready, currentLang); }
+            else { document.getElementById('statusMsg').innerHTML=t.proveFail; speakText(t.proveFail, currentLang); }
+            updateStatusAndClue();
+        }
+        
+        function updateBadges(){ 
+            let container=document.getElementById('badgeContainer'); 
+            const t = LANG_TEXTS[currentLang];
+            container.innerHTML = CASES.map((_,i)=>`<div class="medal ${solvedBadges[i]?'active':''}">${t.badgeShort[i]}</div>`).join(''); 
+        }
+        
+        function speakText(text, langCode) {
+            if(!window.speechSynthesis) return;
+            window.speechSynthesis.cancel();
+            let utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = (langCode === 'zh') ? 'zh-CN' : 'en-US';
+            utterance.rate = 0.9;
+            window.speechSynthesis.speak(utterance);
+        }
+        function readCurrentCase(){
+            const t = LANG_TEXTS[currentLang];
+            let title = t.caseTitles[currentCaseIdx];
+            let desc = t.caseDescs[currentCaseIdx];
+            let theorem = t.theorems[currentCaseIdx];
+            speakText(`${title}. ${desc}. ${theorem}`, currentLang);
+        }
+        function readClue(){
+            const t = LANG_TEXTS[currentLang];
+            let theorem = t.theorems[currentCaseIdx];
+            let status = document.getElementById('mistakeTip').innerText.replace(/[✓✗❌]/g,'');
+            speakText(`${t.clueLabel} ${theorem}. ${status}`, currentLang);
+        }
+        function readMeasurement(){
+            let readoutDiv = document.getElementById('liveReadout').innerText;
+            const t = LANG_TEXTS[currentLang];
+            let msg = t.measurementReadoutPrefix + " " + readoutDiv.replace("📐","");
+            speakText(msg, currentLang);
+        }
+        
+        function setLanguage(lang){
+            currentLang = lang;
+            document.getElementById('langZhBtn').classList.toggle('active', lang==='zh');
+            document.getElementById('langEnBtn').classList.toggle('active', lang==='en');
+            refreshAllUITexts();
+            updateStatusAndClue();
+            drawCanvas();
+        }
+        
+        canvas.addEventListener('mousedown', onMouseDown);
+        window.addEventListener('mousemove', onMouseMove);
+        window.addEventListener('mouseup', onMouseUp);
+        document.getElementById('resetBtn').addEventListener('click', resetCase);
+        document.getElementById('nextCaseBtn').addEventListener('click', nextCase);
+        document.getElementById('prevCaseBtn').addEventListener('click', prevCase);
+        document.getElementById('proveBtn').addEventListener('click', proveCase);
+        document.getElementById('langZhBtn').addEventListener('click', ()=>setLanguage('zh'));
+        document.getElementById('langEnBtn').addEventListener('click', ()=>setLanguage('en'));
+        document.getElementById('speakCaseBtn').addEventListener('click', readCurrentCase);
+        document.getElementById('speakClueBtn').addEventListener('click', readClue);
+        document.getElementById('speakMeasurementBtn').addEventListener('click', readMeasurement);
+        document.getElementById('liveReadout')?.addEventListener('click', (e)=>{
+            if(e.target.id === 'speakMeasurementBtnMini') readMeasurement();
+        });
+        
+        refreshAllUITexts();
+        updateStatusAndClue();
+        drawCanvas();
+        updateBadges();
+    })();
+</script>
+</body>
+</html>
