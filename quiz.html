@@ -1,27 +1,249 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Circle Geometry - Quiz</title>
-    <link rel="stylesheet" href="css/style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>圆定理侦探测验 | 侦探考核</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: #e8eef2;
+            font-family: 'Courier New', monospace;
+            color: #5c4b2c;
+        }
+        .navbar {
+            background: #4a6e5a;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #fef0cf;
+            text-decoration: none;
+        }
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+        .nav-links a {
+            color: #fef0cf;
+            text-decoration: none;
+            background: #3a5a48;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 1rem;
+        }
+        .quiz-card {
+            background: #fef9e8;
+            border: 2px solid #cbd5e0;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 4px 4px 0 #d0d8e4;
+        }
+        .question {
+            margin-bottom: 1rem;
+        }
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin: 1rem 0;
+        }
+        .option {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        button {
+            background: #e5d5b8;
+            border: none;
+            padding: 0.5rem 1rem;
+            font-family: monospace;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 3px 0 #cbbf9f;
+        }
+        button:active {
+            transform: translateY(2px);
+        }
+        .feedback {
+            margin-top: 0.5rem;
+            padding: 0.3rem;
+            border-radius: 8px;
+        }
+        .level-badge {
+            background: #dba643;
+            color: white;
+            padding: 0.2rem 0.8rem;
+            border-radius: 20px;
+            display: inline-block;
+        }
+    </style>
 </head>
 <body>
     <nav class="navbar">
-        <a href="index.html" class="logo">Circle Geometry</a>
+        <a href="index.html" class="logo">🔍 圆定理侦探社</a>
         <ul class="nav-links">
-            <li><a href="index.html">Home</a></li>
-            <li><a href="V3.2.B.html">Game</a></li>
-            <li><a href="quiz.html">Quiz</a></li>
+            <li><a href="index.html">🏠 主页</a></li>
+            <li><a href="V3.2.B.html">🎮 游戏</a></li>
+            <li><a href="quiz.html">📝 测验</a></li>
         </ul>
-        <button class="dark-mode-toggle">🌙</button>
     </nav>
-    
-    <main>
-        <h1>Geometry Quiz</h1>
-        <p>This section will be developed by Member C</p>
-    </main>
-    
-<script src="main.js"></script>
+    <div class="container">
+        <div class="quiz-card">
+            <div style="display: flex; justify-content: space-between;">
+                <h2>📝 侦探考核 · 圆定理测验</h2>
+                <div><span class="level-badge" id="levelBadge">等级 1</span> &nbsp; 得分: <span id="scoreDisplay">0</span></div>
+            </div>
+            <div id="quizArea"></div>
+            <div style="text-align: center; margin-top: 1rem;">
+                <button id="nextLevelBtn" style="display: none;">下一等级 →</button>
+            </div>
+        </div>
+    </div>
+    <script>
+        // 题库（3个等级，每级5题）
+        const bank = {
+            1: [
+                { text: "圆心角定理指出，同圆中相等的圆心角所对的弧______。", options: ["相等", "不相等", "互为补弧", "长度无关"], correct: 0 },
+                { text: "圆周角定理：同弧所对的圆周角是圆心角的______。", options: ["2倍", "1/2", "相等", "无法确定"], correct: 1 },
+                { text: "半圆（直径）所对的圆周角是多少度？", options: ["45°", "60°", "90°", "180°"], correct: 2 },
+                { text: "垂径定理中，垂直于弦的直径______弦。", options: ["平分", "垂直但不平分", "延长", "无关"], correct: 0 },
+                { text: "圆内接四边形对角______。", options: ["相等", "互补", "互余", "无关系"], correct: 1 }
+            ],
+            2: [
+                { text: "从圆外一点引圆的两条切线，它们的长度______。", options: ["相等", "不等", "乘积为半径平方", "无关系"], correct: 0 },
+                { text: "弦切角等于它所夹的弧所对的______。", options: ["圆心角", "圆周角", "外角", "内角"], correct: 1 },
+                { text: "两圆相交，连心线垂直平分______。", options: ["公共弦", "外公切线", "内公切线", "半径"], correct: 0 },
+                { text: "圆内接四边形中，外角等于它的______。", options: ["内对角", "邻补角", "圆心角", "圆周角"], correct: 0 },
+                { text: "半径为R的圆中，n°圆心角所对弧长为______。", options: ["nπR/180", "nπR/360", "2πR", "πR/180"], correct: 0 }
+            ],
+            3: [
+                { text: "托勒密定理适用于______。", options: ["圆内接四边形", "任意四边形", "梯形", "平行四边形"], correct: 0 },
+                { text: "圆幂定理包括相交弦定理、切割线定理和______。", options: ["切线长定理", "垂径定理", "圆心角定理", "圆周角定理"], correct: 0 },
+                { text: "已知圆O外一点P，PA切圆于A，PB切圆于B，则∠APB与∠AOB的关系是______。", options: ["互补", "相等", "互余", "2倍"], correct: 0 },
+                { text: "弦AB分圆为1:2两部分，则弦AB所对圆周角为______。", options: ["60°", "120°", "60°或120°", "90°"], correct: 2 },
+                { text: "圆内接三角形中，一边所对圆周角等于该边所对______。", options: ["圆心角的一半", "圆心角", "外角", "内对角"], correct: 0 }
+            ]
+        };
+
+        let currentLevel = 1;
+        let currentQuestions = [];
+        let qIndex = 0;
+        let score = 0;
+        let levelScores = {1:0,2:0,3:0};
+        let levelUnlocked = 1;
+
+        function loadProgress() {
+            const saved = localStorage.getItem('circleQuiz_progress');
+            if (saved) {
+                const data = JSON.parse(saved);
+                currentLevel = data.level || 1;
+                score = data.score || 0;
+                levelScores = data.levelScores || {1:0,2:0,3:0};
+                levelUnlocked = data.levelUnlocked || 1;
+            }
+            updateUI();
+        }
+        function saveProgress() {
+            localStorage.setItem('circleQuiz_progress', JSON.stringify({
+                level: currentLevel,
+                score: score,
+                levelScores: levelScores,
+                levelUnlocked: levelUnlocked
+            }));
+            window.dispatchEvent(new Event('storage'));
+        }
+        function updateUI() {
+            document.getElementById('levelBadge').innerText = `等级 ${currentLevel}`;
+            document.getElementById('scoreDisplay').innerText = score;
+        }
+        function loadLevel(level) {
+            if (level > levelUnlocked) {
+                alert('请先完成当前等级！');
+                return false;
+            }
+            currentLevel = level;
+            currentQuestions = [...bank[level]];
+            qIndex = 0;
+            renderQuestion();
+            updateUI();
+            return true;
+        }
+        function renderQuestion() {
+            if (qIndex >= currentQuestions.length) {
+                const levelScore = levelScores[currentLevel] || 0;
+                if (levelScore >= currentQuestions.length * 10) {
+                    if (currentLevel === levelUnlocked && currentLevel < 3) {
+                        levelUnlocked++;
+                        alert(`🎉 恭喜通过等级 ${currentLevel}！解锁等级 ${levelUnlocked}。`);
+                    }
+                }
+                if (currentLevel < 3) {
+                    document.getElementById('nextLevelBtn').style.display = 'block';
+                } else {
+                    document.getElementById('nextLevelBtn').style.display = 'none';
+                    document.getElementById('quizArea').innerHTML = '<div class="quiz-card" style="text-align:center">🏆 恭喜你完成了所有等级！你已成为圆定理大师！</div>';
+                }
+                saveProgress();
+                return;
+            }
+            document.getElementById('nextLevelBtn').style.display = 'none';
+            const q = currentQuestions[qIndex];
+            let html = `<div class="question"><strong>${qIndex+1}. ${q.text}</strong></div><div class="options">`;
+            q.options.forEach((opt, idx) => {
+                html += `<label class="option"><input type="radio" name="q" value="${idx}"> ${opt}</label>`;
+            });
+            html += `</div><div class="feedback" id="fb_${qIndex}"></div><button class="checkBtn" data-idx="${qIndex}">提交</button>`;
+            document.getElementById('quizArea').innerHTML = html;
+            document.querySelector('.checkBtn')?.addEventListener('click', () => checkAnswer(qIndex));
+        }
+        function checkAnswer(idx) {
+            const selected = document.querySelector(`input[name="q"]:checked`);
+            if (!selected) { alert('请选择一个答案'); return; }
+            const answer = parseInt(selected.value);
+            const isCorrect = (answer === currentQuestions[idx].correct);
+            const fbDiv = document.getElementById(`fb_${idx}`);
+            if (isCorrect) {
+                fbDiv.innerHTML = '<span style="color:green;">✓ 正确！</span>';
+                fbDiv.style.background = '#e6fffa';
+                if (!currentQuestions[idx].answered) {
+                    currentQuestions[idx].answered = true;
+                    score += 10;
+                    levelScores[currentLevel] = (levelScores[currentLevel] || 0) + 10;
+                    updateUI();
+                }
+            } else {
+                fbDiv.innerHTML = `<span style="color:red;">✗ 错误。正确答案是: ${currentQuestions[idx].options[currentQuestions[idx].correct]}</span>`;
+                fbDiv.style.background = '#ffe6e6';
+            }
+            document.querySelector('.checkBtn').disabled = true;
+            document.querySelectorAll('.option input').forEach(i => i.disabled = true);
+            setTimeout(() => {
+                qIndex++;
+                renderQuestion();
+                saveProgress();
+            }, 1000);
+        }
+        document.getElementById('nextLevelBtn')?.addEventListener('click', () => {
+            if (currentLevel < 3) loadLevel(currentLevel + 1);
+        });
+        loadProgress();
+        loadLevel(currentLevel);
+    </script>
 </body>
 </html>
