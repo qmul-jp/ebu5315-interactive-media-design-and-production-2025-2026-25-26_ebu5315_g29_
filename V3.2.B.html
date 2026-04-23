@@ -341,6 +341,26 @@
 
 <script>
     (function(){
+        // ==================== 音效管理 ====================
+        const sounds = {
+            drag: new Audio('assets/sounds/drag.mp3'),
+            error: new Audio('assets/sounds/error.mp3'),
+            pageFlip: new Audio('assets/sounds/page-flip.mp3'),
+            success: new Audio('assets/sounds/success.mp3')
+        };
+        for (let key in sounds) {
+            sounds[key].load();
+        }
+        function playSound(name, volume = 0.5) {
+            const s = sounds[name];
+            if (s) {
+                s.volume = volume;
+                s.currentTime = 0;
+                s.play().catch(e => console.log('音效播放失败:', e));
+            }
+        }
+
+        // ==================== 多语言文本 ====================
         const LANG_TEXTS = {
             zh: {
                 canvasNote: "🖱️ 拖拽彩色圆点 | 观察角度 | 完成定理推理",
@@ -362,7 +382,7 @@
                 caseDescs: [
                     "🎭 拖拽A/B/C/D点，使圆心角AOB = 圆心角COD",
                     "🏰 拖拽锡兵P，观察∠APB和∠AOB的关系，填写正确答案",
-                    "🌉 拖拽弦端点C/D，使桥柱(直径)垂直于弦CD",
+                    "🌉 拖拽弦端点C/D，使桥柱(直径)垂直于弦CD（使弦CD水平）",
                     "🧭 观察四边形顶点，记录对角和并验证互补关系",
                     "💧 拖拽P和P'沿虚线滑动，使两点在交点重合，PA = P'B"
                 ],
@@ -383,7 +403,7 @@
                 proveAlready: "🎉 已破获此案，继续挑战新案件吧！",
                 proveFail: "⚠️ 尚未满足定理条件，请先构造正确图形再结案。",
                 measurementReadoutPrefix: "当前测量数据：",
-                hintTexts: {0:"使两个扇形角度相等",2:"使弦垂直于直径",4:"将P和P'拖到交点",default:"调整图形"},
+                hintTexts: {0:"使两个扇形角度相等",2:"使弦CD水平（垂直于垂直直径）",4:"将P和P'拖到交点",default:"调整图形"},
                 inputPlaceholder: "例如 1/3", inputSumPlaceholder: "度数", inputVerify: "验证",
                 inputHintGeneric: "✨ 拖拽点满足条件后点击结案 ✨",
                 relationQuestion: "∠APB = (  ) ∠AOB", sumQuestion: "∠A+∠C = ∠B+∠D = (  ) °",
@@ -398,7 +418,7 @@
                 caseDescs: [
                     "Drag A/B/C/D so central angles AOB = COD",
                     "Drag P, find relation ∠APB : ∠AOB",
-                    "Drag C/D so diameter ⊥ chord CD",
+                    "Drag C/D so diameter ⟂ chord CD (make CD horizontal)",
                     "Check cyclic quadrilateral angles",
                     "Drag P/P' to intersection, PA=P'B"
                 ],
@@ -406,7 +426,7 @@
                 theorems: [
                     "Equal central angles ⇒ equal arcs & chords",
                     "Inscribed angle = ½ central angle",
-                    "Diameter ⊥ chord ⇒ bisects chord",
+                    "Diameter ⟂ chord ⇒ bisects chord",
                     "Opposite angles sum to 180°",
                     "Tangents from one point are equal"
                 ],
@@ -415,7 +435,7 @@
                 correctInputHint: "✓ Correct", wrongInputHint: "✗ Try again",
                 proveSuccess: "🏆 Case closed!", proveAlready: "🎉 Already solved", proveFail: "⚠️ Adjust figure first",
                 measurementReadoutPrefix: "Current: ",
-                hintTexts: {0:"Make angles equal",2:"Make perpendicular",4:"Drag to intersection",default:"Adjust figure"},
+                hintTexts: {0:"Make angles equal",2:"Make CD horizontal",4:"Drag to intersection",default:"Adjust figure"},
                 inputPlaceholder: "1/2", inputSumPlaceholder: "deg", inputVerify: "OK",
                 inputHintGeneric: "Match condition then close case",
                 relationQuestion: "∠APB = (  ) × ∠AOB", sumQuestion: "Sum = (  ) °",
@@ -426,6 +446,7 @@
         let currentLang = "zh";
         let speechSynth = window.speechSynthesis;
         
+        // 几何函数
         function getMinorArcAngleRad(a,b){let d=Math.abs(a-b);return Math.min(d,2*Math.PI-d);}
         function getMinorArcAngleDegrees(a,b){return Math.round(getMinorArcAngleRad(a,b)*180/Math.PI);}
         function computeAngle(ax,ay,bx,by,cx,cy){
@@ -473,8 +494,9 @@
         let getQ=()=>getPointOnTangent(geom.paramQ,getTangentB());
 
         let currentCaseIdx=0,solved=[!1,!1,!1,!1,!1],condMet=!1,drag=null,dragQ=-1;
+        let lastConditionOk = false;
 
-        const CASES=[
+        const CASES = [
             {id:0,name:"圆心角",check:s=>Math.abs(getMinorArcAngleRad(s.angA,s.angB)-getMinorArcAngleRad(s.angC,s.angD))<0.08,
             getReadout:s=>`AOB=${getMinorArcAngleDegrees(s.angA,s.angB)}° COD=${getMinorArcAngleDegrees(s.angC,s.angD)}°`,
             draw:()=>{
@@ -507,13 +529,14 @@
                 let x1=s.cx+s.r*Math.cos(s.chord1),y1=s.cy+s.r*Math.sin(s.chord1);
                 let x2=s.cx+s.r*Math.cos(s.chord2),y2=s.cy+s.r*Math.sin(s.chord2);
                 let dx=x2-x1,dy=y2-y1,len=Math.hypot(dx,dy);
-                return len>0.1&&Math.abs(dx)/len<0.12;
+                return len>0.1 && Math.abs(dy)/len < 0.12;
             },
             getReadout:s=>{
                 let x1=s.cx+s.r*Math.cos(s.chord1),y1=s.cy+s.r*Math.sin(s.chord1);
                 let x2=s.cx+s.r*Math.cos(s.chord2),y2=s.cy+s.r*Math.sin(s.chord2);
                 let dx=x2-x1,dy=y2-y1,len=Math.hypot(dx,dy);
-                return `垂直: ${len>0.1&&Math.abs(dx)/len<0.12?"✓是":"✗否"}`;
+                let isPerp = len>0.1 && Math.abs(dy)/len < 0.12;
+                return `垂直: ${isPerp ? "✓ 是" : "✗ 否"}`;
             },
             draw:()=>{
                 let x1=geom.cx+geom.r*Math.cos(geom.chord1),y1=geom.cy+geom.r*Math.sin(geom.chord1);
@@ -581,7 +604,7 @@
             updateCase();
         }
         function updateCase(){
-            let t=LANG_TEXTS[currentLang],c=CASES[currentCaseIdx];
+            let t=LANG_TEXTS[currentLang];
             document.getElementById('caseBrief').innerHTML=`<h2>${t.caseTitles[currentCaseIdx]}</h2><p>${t.caseDescs[currentCaseIdx]}</p>`;
             document.getElementById('caseCounter').innerText=`Case ${currentCaseIdx+1}/5 · ${t.theoremNames[currentCaseIdx]}`;
             updateStatus();
@@ -589,22 +612,26 @@
             draw();
         }
         function updateStatus(){
-            let t=LANG_TEXTS[currentLang],c=CASES[currentCaseIdx];
-            let ok=currentCaseIdx===1||currentCaseIdx===3?condMet:c.check(geom);
+            let t=LANG_TEXTS[currentLang];
+            let c=CASES[currentCaseIdx];
+            let ok = (currentCaseIdx===1 || currentCaseIdx===3) ? condMet : c.check(geom);
             document.getElementById('liveReadout').innerHTML=`📐 ${c.getReadout(geom)}`;
             let txt,st;
-            if(ok&&!solved[currentCaseIdx]){
+            if(ok && !solved[currentCaseIdx]){
                 txt=`<span style="color:#b87c2e">${t.conditionMetMsg}</span><br>${t.theorems[currentCaseIdx]}`;
-                st=t.conditionMetMsg;document.getElementById('mistakeTip').innerText="✓ 条件满足";
-            }else if(ok&&solved[currentCaseIdx]){
+                st=t.conditionMetMsg; document.getElementById('mistakeTip').innerText="✓ 条件满足";
+                if(!lastConditionOk) playSound('success', 0.5);
+            }else if(ok && solved[currentCaseIdx]){
                 txt=`${t.theorems[currentCaseIdx]}<br><span style="color:#888">${t.proveAlready}</span>`;
-                st=t.proveAlready;document.getElementById('mistakeTip').innerText="✅ 已完成";
+                st=t.proveAlready; document.getElementById('mistakeTip').innerText="✅ 已完成";
             }else{
                 txt=`${t.theorems[currentCaseIdx]}<br><span style="color:#c00">${t.conditionNotMet}</span>`;
-                st=t.statusDefault;document.getElementById('mistakeTip').innerText="❌ 未满足条件";
+                st=t.statusDefault; document.getElementById('mistakeTip').innerText="❌ 未满足条件";
+                if(lastConditionOk && !ok) playSound('error', 0.4);
             }
             document.getElementById('clueText').innerHTML=txt;
             document.getElementById('statusMsg').innerText=st;
+            lastConditionOk = ok;
             draw();
         }
         function renderInput(){
@@ -620,13 +647,13 @@
         }
         window.checkRatio=()=>{
             let v=document.getElementById('ratioIn').value.trim().toLowerCase();
-            if(v==="1/2"||v==="0.5"||v==="½"){condMet=!0;solved[1]=!0;updateStatus();}
-            else alert("Wrong! Try 1/2");
+            if(v==="1/2"||v==="0.5"||v==="½"){condMet=!0;solved[1]=!0;updateStatus();playSound('success',0.6);}
+            else {alert("Wrong! Try 1/2"); playSound('error',0.4);}
         };
         window.checkSum=()=>{
             let v=parseInt(document.getElementById('sumIn').value);
-            if(v===180){condMet=!0;solved[3]=!0;updateStatus();}
-            else alert("Wrong! Sum=180");
+            if(v===180){condMet=!0;solved[3]=!0;updateStatus();playSound('success',0.6);}
+            else {alert("Wrong! Sum=180"); playSound('error',0.4);}
         };
         function draw(){
             ctx.clearRect(0,0,w,h);ctx.fillStyle="#fff9ef";ctx.fillRect(0,0,w,h);
@@ -640,31 +667,33 @@
         }
         canvas.onmousedown=e=>{
             let m=mouse(e),t=20;
+            let dragging = false;
             if(currentCaseIdx===0){
                 let a={x:geom.cx+geom.r*Math.cos(geom.angA),y:geom.cy+geom.r*Math.sin(geom.angA)};
                 let b={x:geom.cx+geom.r*Math.cos(geom.angB),y:geom.cy+geom.r*Math.sin(geom.angB)};
                 let c={x:geom.cx+geom.r*Math.cos(geom.angC),y:geom.cy+geom.r*Math.sin(geom.angC)};
                 let d={x:geom.cx+geom.r*Math.cos(geom.angD),y:geom.cy+geom.r*Math.sin(geom.angD)};
-                if(Math.hypot(m.x-a.x,m.y-a.y)<t)drag="A";
-                else if(Math.hypot(m.x-b.x,m.y-b.y)<t)drag="B";
-                else if(Math.hypot(m.x-c.x,m.y-c.y)<t)drag="C";
-                else if(Math.hypot(m.x-d.x,m.y-d.y)<t)drag="D";
+                if(Math.hypot(m.x-a.x,m.y-a.y)<t){drag="A"; dragging=true;}
+                else if(Math.hypot(m.x-b.x,m.y-b.y)<t){drag="B"; dragging=true;}
+                else if(Math.hypot(m.x-c.x,m.y-c.y)<t){drag="C"; dragging=true;}
+                else if(Math.hypot(m.x-d.x,m.y-d.y)<t){drag="D"; dragging=true;}
             }else if(currentCaseIdx===1){
                 let p={x:geom.cx+geom.r*Math.cos(geom.soldierP),y:geom.cy+geom.r*Math.sin(geom.soldierP)};
-                if(Math.hypot(m.x-p.x,m.y-p.y)<t)drag="P";
+                if(Math.hypot(m.x-p.x,m.y-p.y)<t){drag="P"; dragging=true;}
             }else if(currentCaseIdx===2){
                 let c1={x:geom.cx+geom.r*Math.cos(geom.chord1),y:geom.cy+geom.r*Math.sin(geom.chord1)};
                 let c2={x:geom.cx+geom.r*Math.cos(geom.chord2),y:geom.cy+geom.r*Math.sin(geom.chord2)};
-                if(Math.hypot(m.x-c1.x,m.y-c1.y)<t)drag="C1";
-                else if(Math.hypot(m.x-c2.x,m.y-c2.y)<t)drag="C2";
+                if(Math.hypot(m.x-c1.x,m.y-c1.y)<t){drag="C1"; dragging=true;}
+                else if(Math.hypot(m.x-c2.x,m.y-c2.y)<t){drag="C2"; dragging=true;}
             }else if(currentCaseIdx===3){
                 let p=geom.quadAngles.map(a=>({x:geom.cx+geom.r*Math.cos(a),y:geom.cy+geom.r*Math.sin(a)}));
-                for(let i=0;i<4;i++)if(Math.hypot(m.x-p[i].x,m.y-p[i].y)<t){drag="Q"+i;break;}
+                for(let i=0;i<4;i++) if(Math.hypot(m.x-p[i].x,m.y-p[i].y)<t){drag="Q"+i; dragging=true; break;}
             }else if(currentCaseIdx===4){
                 let p=getP(),q=getQ();
-                if(Math.hypot(m.x-p.x,m.y-p.y)<25)drag="TP";
-                else if(Math.hypot(m.x-q.x,m.y-q.y)<25)drag="TQ";
+                if(Math.hypot(m.x-p.x,m.y-p.y)<25){drag="TP"; dragging=true;}
+                else if(Math.hypot(m.x-q.x,m.y-q.y)<25){drag="TQ"; dragging=true;}
             }
+            if(dragging) playSound('drag', 0.3);
         };
         window.onmousemove=e=>{
             if(!drag)return;let m=mouse(e),a=Math.atan2(m.y-geom.cy,m.x-geom.cx);
@@ -693,15 +722,35 @@
             else if(currentCaseIdx===2){geom.chord1=1;geom.chord2=2.2;}
             else if(currentCaseIdx===3)geom.quadAngles=[0.5,1.8,2.7,4];
             else if(currentCaseIdx===4){geom.paramP=10;geom.paramQ=-15;}
-            condMet=!1;updateStatus();renderInput();
+            condMet=!1;
+            updateStatus();
         }
-        function next(){currentCaseIdx=(currentCaseIdx+1)%5;reset();}
-        function prev(){currentCaseIdx=(currentCaseIdx+4)%5;reset();}
+        function next(){
+            playSound('pageFlip', 0.4);
+            currentCaseIdx = (currentCaseIdx + 1) % 5;
+            reset();
+            updateCase();
+        }
+        function prev(){
+            playSound('pageFlip', 0.4);
+            currentCaseIdx = (currentCaseIdx - 1 + 5) % 5;
+            reset();
+            updateCase();
+        }
         function prove(){
-            let t=LANG_TEXTS[currentLang],ok=currentCaseIdx===1||currentCaseIdx===3?condMet:CASES[currentCaseIdx].check(geom);
-            if(ok&&!solved[currentCaseIdx]){solved[currentCaseIdx]=!0;alert(t.proveSuccess);}
-            else if(ok)alert(t.proveAlready);
-            else alert(t.proveFail);
+            let t=LANG_TEXTS[currentLang];
+            let ok = (currentCaseIdx===1 || currentCaseIdx===3) ? condMet : CASES[currentCaseIdx].check(geom);
+            if(ok && !solved[currentCaseIdx]){
+                solved[currentCaseIdx]=!0;
+                alert(t.proveSuccess);
+                playSound('success', 0.6);
+            } else if(ok){
+                alert(t.proveAlready);
+                playSound('success', 0.5);
+            } else {
+                alert(t.proveFail);
+                playSound('error', 0.5);
+            }
             updateStatus();
         }
         function setLang(l){currentLang=l;
@@ -720,17 +769,32 @@
         document.getElementById('speakClueBtn').onclick=()=>speak(LANG_TEXTS[currentLang].theorems[currentCaseIdx]);
         document.getElementById('speakMeasurementBtn').onclick=()=>speak(CASES[currentCaseIdx].getReadout(geom));
         
-        // 强制返回主页（绝对不冲突）
         document.getElementById('backToHome').onclick = function () {
             window.location.href = "index.html";
         };
+
+        // 暗黑模式
+        const darkToggle = document.getElementById('darkModeToggle');
+        if (darkToggle) {
+            darkToggle.addEventListener('click', () => {
+                document.body.classList.toggle('dark-mode');
+                const isDark = document.body.classList.contains('dark-mode');
+                localStorage.setItem('darkMode', isDark ? 'enabled' : 'disabled');
+                darkToggle.textContent = isDark ? '☀️ 明亮' : '🌙 暗黑';
+                draw();
+            });
+            if (localStorage.getItem('darkMode') === 'enabled') {
+                document.body.classList.add('dark-mode');
+                darkToggle.textContent = '☀️ 明亮';
+            } else {
+                document.body.classList.remove('dark-mode');
+                darkToggle.textContent = '🌙 暗黑';
+            }
+        }
 
         refreshUI();
         draw();
     })();
 </script>
-
-<!-- 全局公用JS -->
-<script src="main.js"></script>
 </body>
 </html>
